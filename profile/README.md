@@ -28,4 +28,4 @@ All our projects are licensed for internal use only. For more details, see the [
 [LICENSE]: https://github.com/DownAtTheBottomOfTheMoleHole/.github/blob/main/LICENSE.md
 <!-- IMAGES AND ICONS -->
 
-[logo-image]: https://github.com/DownAtTheBottomOfTheMoleHole/.github/blob/main/.assets/molehole.png
+[logo-image]: https://github.com/DownAtTheBottomOfTheMoleHole/.github/blob/d41399ca253ceb18039c95de7382d33c607f7ad7/assets/molehole.png
