@@ -4,8 +4,7 @@
 
 ## About Us
 
-Constellation Automotive Group is the largest vertically integrated digital car marketplace in Europe,
-combining the leading digital brands across the segments of consumer to business, business to business and business to consumer.
+We are a small organisation working primarily with terraform
 
 ## Our Projects
 
