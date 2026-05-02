@@ -77,28 +77,29 @@ JOBS = [
         0.85,
     ),
     (
-        "/tmp/yarn_source.png",
+        "/tmp/yarn_source_v2.jpg",
         "/Users/carldawson/repos/downatthebottomofthemolehole/yarn-ado/Extension/extension-icon.png",
         (512, 512),
-        0.50,
+        0.70,
     ),
     (
-        "/tmp/yarn_source.png",
+        "/tmp/yarn_source_v2.jpg",
         "/Users/carldawson/repos/downatthebottomofthemolehole/yarn-ado/Tasks/Yarn/icon.png",
         (128, 128),
-        0.50,
+        0.70,
     ),
     (
-        "/tmp/yarn_source.png",
+        "/tmp/yarn_source_v2.jpg",
         "/Users/carldawson/repos/downatthebottomofthemolehole/yarn-ado/Tasks/YarnInstaller/icon.png",
         (128, 128),
-        0.50,
+        0.70,
     ),
 ]
 
 # Flood-fill tolerance per source filename substring
 TOLERANCES = {
     "megalinter": 30,
+    "yarn_source_v2": 40,  # blue circular bg
     "yarn": 25,
 }
 
