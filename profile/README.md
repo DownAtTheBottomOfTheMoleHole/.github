@@ -1,5 +1,7 @@
 # Down At The Bottom Of The Mole Hole
 
+![Banner](https://raw.githubusercontent.com/downatthebottomofthemolehole/.github/main/95276D17-04ED-4258-9CCC-B98C0F68D06C.png)
+
 [![name][logo-image]](https://github.com/DownAtTheBottomOfTheMoleHole/)
 
 ## About Us
@@ -18,6 +20,21 @@ If you have any questions, feel free to reach out to us via @RolfMoleman.
 
 All our projects are licensed for internal use only. For more details, see the [LICENSE](https://github.com/DownAtTheBottomOfTheMoleHole/.github/blob/main/LICENSE) file in each project repository.
 
+## Images and assets
+
+IMAGE LICENCE (LOGO & BANNER)
+
+All images in this repository (including logo.png and banner.png)
+are proprietary and copyright © 2026 DownAtTheBottomOfTheMoleHole.
+
+These assets may not be:
+- Reproduced
+- Modified
+- Distributed
+- Used in derivative works
+
+without prior written permission.
+
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 
@@ -27,4 +44,4 @@ All our projects are licensed for internal use only. For more details, see the [
 [LICENSE]: https://github.com/DownAtTheBottomOfTheMoleHole/.github/blob/main/LICENSE.md
 <!-- IMAGES AND ICONS -->
 
-[logo-image]: https://github.com/DownAtTheBottomOfTheMoleHole/.github/blob/d41399ca253ceb18039c95de7382d33c607f7ad7/assets/molehole.png
+[logo-image]: https://github.com/DownAtTheBottomOfTheMoleHole/.github/blob/d41399ca253ceb18039c95de7382d33c607f7ad7/assets/412F3606-3C65-4552-92EA-DA17B57BCCDA.png
