@@ -1,4 +1,3 @@
-# Down At The Bottom Of The Mole Hole
 
 [![Banner][Banner-image]](https://github.com/DownAtTheBottomOfTheMoleHole/)
 
