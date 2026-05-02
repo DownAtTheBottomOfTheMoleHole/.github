@@ -1,0 +1,15 @@
+title: ""
+body:
+  - type: markdown
+    attributes:
+      value: |
+        General discussion — for anything that doesn't fit a more specific category.
+
+  - type: textarea
+    id: topic
+    attributes:
+      label: What would you like to discuss?
+      description: Share your thoughts, questions, or anything else on your mind.
+      placeholder: "Start the conversation here..."
+    validations:
+      required: true
