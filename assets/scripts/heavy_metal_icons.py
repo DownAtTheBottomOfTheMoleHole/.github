@@ -271,6 +271,17 @@ def dilate_mask(mask: np.ndarray, radius: int = 2) -> np.ndarray:
     return np.array(dilated) > 0
 
 
+def erode_mask(mask: np.ndarray, radius: int = 1) -> np.ndarray:
+    """Erode a boolean mask using PIL MinFilter."""
+    if radius <= 0:
+        return mask.copy()
+
+    size = radius * 2 + 1
+    mask_img = Image.fromarray((mask.astype(np.uint8) * 255))
+    eroded = mask_img.filter(ImageFilter.MinFilter(size=size))
+    return np.array(eroded) > 0
+
+
 def flood_within_mask(fill_allowed: np.ndarray, seed_mask: np.ndarray) -> np.ndarray:
     """Flood-fill inside fill_allowed starting from seed_mask pixels."""
     h, w = fill_allowed.shape
@@ -379,18 +390,23 @@ def stylize_yarn_transparent(source_rgb: np.ndarray, fg_mask_soft: np.ndarray) -
     dist = np.sqrt((xx - cx) ** 2 + (yy - cy) ** 2)
 
     # Geometric circle cleans JPEG stair-steps while preserving the original size.
-    circle_geom = dist <= (radius * 1.01)
-    ring_mask = (dist >= (radius - 2.2)) & (dist <= (radius + 1.0))
+    circle_geom = dist <= radius
+    ring_mask = np.abs(dist - radius) <= 1.15
+    ring_mask = largest_component(ring_mask)
 
     lum = 0.299 * r + 0.587 * g + 0.114 * b
     chroma = np.max(rgb, axis=2) - np.min(rgb, axis=2)
     white_mask = (lum > 0.72) & (chroma < 0.28)
 
     # Keep cat outline detection away from the outer circle border artifacts.
-    center_region = dist <= (radius * 0.88)
+    center_region = (dist <= (radius * 0.88)) & (yy >= (cy - radius * 0.70))
     cat_outline = white_mask & center_region
+    # Close tiny JPEG gaps first, then keep only the principal silhouette outline.
     cat_outline = dilate_mask(cat_outline, radius=1)
-    cat_outline = remove_small_components(cat_outline, min_pixels=max(20, (h * w) // 700))
+    cat_outline = erode_mask(cat_outline, radius=1)
+    cat_outline = remove_small_components(cat_outline, min_pixels=max(36, (h * w) // 420))
+    cat_outline = largest_component(cat_outline)
+    cat_outline = dilate_mask(cat_outline, radius=1)
 
     barrier = dilate_mask(cat_outline, radius=2)
     fillable = (dist <= (radius - 3.0)) & ~barrier
@@ -403,6 +419,8 @@ def stylize_yarn_transparent(source_rgb: np.ndarray, fg_mask_soft: np.ndarray) -
     # Fallback in case outline gaps make cat fill disappear.
     if np.count_nonzero(cat_fill_mask) < max(20, circle_mask.size // 2000):
         cat_fill_mask = fillable & (lum < 0.56)
+    cat_fill_mask = remove_small_components(cat_fill_mask, min_pixels=max(48, (h * w) // 360))
+    cat_fill_mask = largest_component(cat_fill_mask)
 
     outline_mask = ring_mask | cat_outline
 
@@ -412,9 +430,8 @@ def stylize_yarn_transparent(source_rgb: np.ndarray, fg_mask_soft: np.ndarray) -
     out[cat_fill_mask, :3] = np.array(YARN_CAT_BROWN, dtype=np.uint8)
     out[outline_mask, :3] = np.array(YARN_OUTLINE_GOLD, dtype=np.uint8)
 
-    edge_soft = np.clip(radius + 0.75 - dist, 0.0, 1.0)
+    edge_soft = np.clip(radius + 0.35 - dist, 0.0, 1.0)
     alpha = np.maximum(edge_soft, (cat_fill_mask | outline_mask).astype(np.float32))
-    alpha = np.maximum(alpha, 0.2 * fg_mask_soft.astype(np.float32) * circle_geom.astype(np.float32))
     out[..., 3] = (np.clip(alpha, 0.0, 1.0) * 255.0).astype(np.uint8)
 
     return Image.fromarray(out, mode="RGBA")
@@ -509,6 +526,10 @@ def main():
 
         if final_img.size != target_size:
             final_img = final_img.resize(target_size, Image.Resampling.LANCZOS)
+
+        if is_yarn_v2:
+            # Preserve clean edges; avoid post-sharpen artifacts on circular borders.
+            pass
 
         os.makedirs(os.path.dirname(dst_path), exist_ok=True)
         final_img.save(dst_path)
