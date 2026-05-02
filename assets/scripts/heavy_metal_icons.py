@@ -365,8 +365,17 @@ def letterbox_to_square(img: Image.Image, bg_color: tuple = NEAR_BLACK) -> Image
     return square
 
 
-def stylize_yarn_transparent(source_rgb: np.ndarray, fg_mask_soft: np.ndarray) -> Image.Image:
+def stylize_yarn_transparent(
+    source_rgb: np.ndarray,
+    fg_mask_soft: np.ndarray,
+    target_size: tuple[int, int] | None = None,
+) -> Image.Image:
     """Create transparent Yarn icon: black circle, gold outline, brown cat fill."""
+    if target_size is not None and (source_rgb.shape[1], source_rgb.shape[0]) != target_size:
+        src_img = Image.fromarray(source_rgb)
+        src_img = src_img.resize(target_size, Image.Resampling.BICUBIC)
+        source_rgb = np.array(src_img)
+
     rgb = source_rgb.astype(np.float32) / 255.0
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
 
@@ -391,7 +400,7 @@ def stylize_yarn_transparent(source_rgb: np.ndarray, fg_mask_soft: np.ndarray) -
 
     # Geometric circle cleans JPEG stair-steps while preserving the original size.
     circle_geom = dist <= radius
-    ring_mask = np.abs(dist - radius) <= 1.15
+    ring_mask = np.abs(dist - radius) <= 0.85
     ring_mask = largest_component(ring_mask)
 
     lum = 0.299 * r + 0.587 * g + 0.114 * b
@@ -401,20 +410,34 @@ def stylize_yarn_transparent(source_rgb: np.ndarray, fg_mask_soft: np.ndarray) -
     # Keep cat outline detection away from the outer circle border artifacts.
     center_region = (dist <= (radius * 0.88)) & (yy >= (cy - radius * 0.70))
     cat_outline = white_mask & center_region
-    # Close tiny JPEG gaps first, then keep only the principal silhouette outline.
+    # Build a cleaner cat path from JPEG source while preserving narrow details.
     cat_outline = dilate_mask(cat_outline, radius=1)
     cat_outline = erode_mask(cat_outline, radius=1)
     cat_outline = remove_small_components(cat_outline, min_pixels=max(36, (h * w) // 420))
     cat_outline = largest_component(cat_outline)
-    cat_outline = dilate_mask(cat_outline, radius=1)
+    cat_outline = erode_mask(cat_outline, radius=1)
 
-    barrier = dilate_mask(cat_outline, radius=2)
-    fillable = (dist <= (radius - 3.0)) & ~barrier
+    # Close tiny breaks in the outline to allow enclosed-shape filling.
+    cat_wall = dilate_mask(cat_outline, radius=2)
+    cat_wall = erode_mask(cat_wall, radius=1)
 
-    # Start from ring-adjacent pixels to get the "outside of cat" region.
-    near_edge = (dist >= (radius - 8.0)) & fillable
+    fillable = (dist <= (radius - 2.8)) & ~cat_wall
+
+    # Flood from near circle edge to mark outside-of-cat area; remaining becomes cat fill.
+    near_edge = (dist >= (radius - 7.5)) & fillable
     outside_region = flood_within_mask(fillable, near_edge)
-    cat_fill_mask = fillable & ~outside_region
+    enclosed_region = fillable & ~outside_region
+
+    # Depending on tiny mask breaks, flood orientation can invert.
+    # Prefer the smaller plausible body region as cat fill.
+    outside_area = np.count_nonzero(outside_region)
+    enclosed_area = np.count_nonzero(enclosed_region)
+    if enclosed_area <= outside_area:
+        cat_fill_mask = enclosed_region
+    else:
+        cat_fill_mask = outside_region
+
+    cat_fill_mask &= dist <= (radius * 0.90)
 
     # Fallback in case outline gaps make cat fill disappear.
     if np.count_nonzero(cat_fill_mask) < max(20, circle_mask.size // 2000):
@@ -430,9 +453,8 @@ def stylize_yarn_transparent(source_rgb: np.ndarray, fg_mask_soft: np.ndarray) -
     out[cat_fill_mask, :3] = np.array(YARN_CAT_BROWN, dtype=np.uint8)
     out[outline_mask, :3] = np.array(YARN_OUTLINE_GOLD, dtype=np.uint8)
 
-    edge_soft = np.clip(radius + 0.35 - dist, 0.0, 1.0)
-    alpha = np.maximum(edge_soft, (cat_fill_mask | outline_mask).astype(np.float32))
-    out[..., 3] = (np.clip(alpha, 0.0, 1.0) * 255.0).astype(np.uint8)
+    alpha = circle_geom.astype(np.uint8) * 255
+    out[..., 3] = alpha
 
     return Image.fromarray(out, mode="RGBA")
 
@@ -507,7 +529,7 @@ def main():
 
         is_yarn_v2 = "yarn_source_v2" in src_path.lower()
         if is_yarn_v2:
-            final_img = stylize_yarn_transparent(source_rgb, fg_mask)
+            final_img = stylize_yarn_transparent(source_rgb, fg_mask, target_size=target_size)
             final_img = letterbox_to_square(final_img, bg_color=(0, 0, 0, 0))
         else:
             metal_colored = apply_metal_ramp(stretched_lum)
@@ -525,7 +547,10 @@ def main():
             final_img = letterbox_to_square(final_img)
 
         if final_img.size != target_size:
-            final_img = final_img.resize(target_size, Image.Resampling.LANCZOS)
+            resample = Image.Resampling.LANCZOS
+            if is_yarn_v2:
+                resample = Image.Resampling.NEAREST
+            final_img = final_img.resize(target_size, resample)
 
         if is_yarn_v2:
             # Preserve clean edges; avoid post-sharpen artifacts on circular borders.
