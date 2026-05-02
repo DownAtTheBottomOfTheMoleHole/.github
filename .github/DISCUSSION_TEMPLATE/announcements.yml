@@ -1,0 +1,16 @@
+title: "[Announcement] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this category for official announcements from the org maintainers.
+        Only maintainers can post here.
+
+  - type: textarea
+    id: announcement
+    attributes:
+      label: Announcement
+      description: What would you like to announce?
+      placeholder: "Write your announcement here..."
+    validations:
+      required: true
