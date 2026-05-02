@@ -1,0 +1,38 @@
+title: "[Q&A] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ask a question about any project in this org.
+        Please search existing discussions before posting.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What do you need help with? Please be as specific as possible.
+      placeholder: "How do I..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What Have You Tried?
+      description: >
+        Share what you've already attempted. This helps avoid suggestions you've
+        already explored.
+      placeholder: "I've tried... and got the error..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: >
+        Add any relevant context — OS, runtime version, relevant config,
+        error messages, etc.
+      placeholder: "Node.js v22, macOS 15..."
+    validations:
+      required: false
