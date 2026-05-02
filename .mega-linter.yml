@@ -1,0 +1,84 @@
+---
+# MegaLinter configuration — DownAtTheBottomOfTheMoleHole org baseline
+# https://megalinter.io/latest/configuration/
+#
+# This is a generic baseline. Repos with specific linter requirements
+# (e.g. Ansible, ADO pipelines, Kubernetes) should extend this with
+# additional ENABLE_LINTERS entries and tool-specific settings.
+#
+# See megalinter-ado/.mega-linter.yml for a fully configured example.
+
+# ─── Auto-fix ──────────────────────────────────────────────────────────────────
+APPLY_FIXES: all # Automatically apply fixes where supported
+
+# ─── Reports ───────────────────────────────────────────────────────────────────
+CLEAR_REPORT_FOLDER: true
+CONFIG_REPORTER: true
+CONFIG_REPORTER_SUB_FOLDER: IDE-config
+FILEIO_REPORTER: false # DO NOT ENABLE — generates public hyperlinks
+FLAVOR_SUGGESTIONS: true
+FORMATTERS_DISABLE_ERRORS: true # Report formatter issues as warnings
+JSON_REPORTER: true
+JSON_REPORTER_OUTPUT_DETAIL: "detailed"
+REPORTERS_MARKDOWN_TYPE: advanced
+REPORT_OUTPUT_FOLDER: ./megalinter-reports
+SARIF_REPORTER: true
+SHOW_ELAPSED_TIME: true
+SHOW_SKIPPED_LINTERS: true
+TAP_REPORTER: true
+TAP_REPORTER_SUB_FOLDER: tap
+TEXT_REPORTER: true
+TEXT_REPORTER_SUB_FOLDER: text
+UPDATED_SOURCES_REPORTER: true
+UPDATED_SOURCES_REPORTER_DIR: updated_sources
+
+# ─── Linter defaults ───────────────────────────────────────────────────────────
+MARKDOWN_DEFAULT_STYLE: markdownlint
+TYPESCRIPT_DEFAULT_STYLE: prettier
+PRINT_ALPACA: true
+PRINT_ALL_FILES: true
+
+# ─── Failure behaviour ─────────────────────────────────────────────────────────
+FAIL_IF_MISSING_LINTER_IN_FLAVOR: false
+FAIL_IF_UPDATED_SOURCES: false
+
+# ─── File exclusions ───────────────────────────────────────────────────────────
+EXCLUDED_DIRECTORIES:
+  - node_modules
+  - .git
+  - dist
+  - megalinter-reports
+
+# Applies to file-level linters only (no effect on repo-level linters)
+FILTER_REGEX_EXCLUDE: "(node_modules/|\\.git/|dist/|megalinter-reports/)"
+
+IGNORE_GITIGNORED_FILES: true
+
+# ─── Security scanners ─────────────────────────────────────────────────────────
+REPOSITORY_GITLEAKS_DISABLE_ERRORS: false
+REPOSITORY_GITLEAKS_DISABLE_ERRORS_IF_LESS_THAN: 0
+REPOSITORY_SECRETLINT_DISABLE_ERRORS: false
+REPOSITORY_SECRETLINT_DISABLE_ERRORS_IF_LESS_THAN: 0
+REPOSITORY_TRUFFLEHOG_DISABLE_ERRORS: false
+REPOSITORY_TRUFFLEHOG_DISABLE_ERRORS_IF_LESS_THAN: 0
+
+# ─── Checkov (IaC security) ────────────────────────────────────────────────────
+REPOSITORY_CHECKOV_ARGUMENTS:
+  - "--include-all-checkov-policies"
+REPOSITORY_CHECKOV_DISABLE_ERRORS: false
+REPOSITORY_CHECKOV_DISABLE_ERRORS_IF_LESS_THAN: 0
+REPOSITORY_CHECKOV_PRE_COMMANDS:
+  - command: "mkdir -p ./megalinter-reports/sarif"
+    cwd: "workspace"
+REPOSITORY_CHECKOV_POST_COMMANDS:
+  - command: "mv -f ./megalinter-reports/results_sarif.sarif ./megalinter-reports/sarif/REPOSITORY_CHECKOV.sarif 2>/dev/null || true"
+    cwd: "workspace"
+
+# ─── Trivy (vulnerability scanning) ───────────────────────────────────────────
+REPOSITORY_TRIVY_DISABLE_ERRORS: false
+REPOSITORY_TRIVY_DISABLE_ERRORS_IF_LESS_THAN: 0
+
+# ─── Semgrep (SAST) ────────────────────────────────────────────────────────────
+REPOSITORY_SEMGREP_DISABLE_ERRORS: false
+REPOSITORY_SEMGREP_DISABLE_ERRORS_IF_LESS_THAN: 0
+REPOSITORY_SEMGREP_RULESETS: auto
