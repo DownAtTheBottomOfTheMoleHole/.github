@@ -1,12 +1,12 @@
 # GitVersion 6 baseline for DownAtTheBottomOfTheMoleHole repositories.
 #
 # This baseline assumes a GitHub Flow style with releases cut from tags on main,
-# preview versions on feature / PR branches, and version increments driven by
-# conventional commit style merge messages.
+# preview versions on feature / PR branches, and conservative version increments
+# driven by conventional commit style merge messages.
 ---
 workflow: GitHubFlow/v1
 mode: ContinuousDelivery
-tag-prefix: '[vV]?'
+tag-prefix: "[vV]?"
 semantic-version-format: Strict
 update-build-number: true
 commit-message-incrementing: MergeMessageOnly
@@ -16,22 +16,22 @@ commit-message-incrementing: MergeMessageOnly
 # version increments aligned with the title linting policy.
 major-version-bump-message: "^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test|security)(\\([\\w\\s.,_\/-]*\\))?(!:|:.*\\n\\n((.+\\n)+\\n)?BREAKING CHANGE:\\s.+)"
 minor-version-bump-message: "^(feat)(\\([\\w\\s.,_\/-]*\\))?:"
-patch-version-bump-message: "^(fix|perf|revert|security)(\\([\\w\\s.,_\/-]*\\))?:"
-no-bump-message: "^(docs|style|test|build|ci|chore)(\\([\\w\\s.,_\/-]*\\))?:"
+patch-version-bump-message: "^(fix|security)(\\([\\w\\s.,_\/-]*\\))?:"
+no-bump-message: "^(docs|style|test|build|ci|chore|perf|revert)(\\([\\w\\s.,_\/-]*\\))?:"
 
 assembly-versioning-scheme: MajorMinorPatch
-assembly-file-versioning-format: '{Major}.{Minor}.{Patch}.{WeightedPreReleaseNumber ?? 0}'
-assembly-informational-format: '{InformationalVersion}'
+assembly-file-versioning-format: "{Major}.{Minor}.{Patch}.{WeightedPreReleaseNumber ?? 0}"
+assembly-informational-format: "{InformationalVersion}"
 
 branches:
   main:
-    label: ''
-    increment: Patch
+    label: ""
+    increment: None
 
   release:
     mode: ManualDeployment
     label: rc
-    increment: Patch
+    increment: None
 
   feature:
     mode: ContinuousDelivery
@@ -47,6 +47,7 @@ branches:
     mode: ContinuousDelivery
     label: beta.{BranchName}
     increment: Patch
+    regex: ^hotfix(es)?[/-](?<BranchName>.+)
 
   unknown:
     mode: ContinuousDelivery
