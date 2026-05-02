@@ -43,6 +43,10 @@ from collections import deque
 
 NEAR_BLACK = (10, 6, 4)  # background fill — #0a0604
 
+YARN_CIRCLE_BLACK = (8, 5, 4)
+YARN_CAT_BROWN = (90, 52, 8)
+YARN_OUTLINE_GOLD = (224, 176, 64)
+
 METAL_RAMP = [
     (0.00, (10,   6,   4)),   # near-black warm
     (0.18, (22,  16,  10)),   # very dark earth
@@ -223,6 +227,72 @@ def remove_small_components(mask: np.ndarray, min_pixels: int) -> np.ndarray:
     return out
 
 
+def largest_component(mask: np.ndarray) -> np.ndarray:
+    """Return only the largest connected component from a boolean mask."""
+    h, w = mask.shape
+    visited = np.zeros((h, w), dtype=bool)
+    best = []
+
+    for y in range(h):
+        for x in range(w):
+            if not mask[y, x] or visited[y, x]:
+                continue
+
+            queue = deque([(y, x)])
+            visited[y, x] = True
+            component = []
+
+            while queue:
+                cy, cx = queue.popleft()
+                component.append((cy, cx))
+                for dy, dx in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                    ny, nx = cy + dy, cx + dx
+                    if 0 <= ny < h and 0 <= nx < w and mask[ny, nx] and not visited[ny, nx]:
+                        visited[ny, nx] = True
+                        queue.append((ny, nx))
+
+            if len(component) > len(best):
+                best = component
+
+    out = np.zeros((h, w), dtype=bool)
+    for y, x in best:
+        out[y, x] = True
+    return out
+
+
+def dilate_mask(mask: np.ndarray, radius: int = 2) -> np.ndarray:
+    """Dilate a boolean mask using PIL MaxFilter."""
+    if radius <= 0:
+        return mask.copy()
+
+    size = radius * 2 + 1
+    mask_img = Image.fromarray((mask.astype(np.uint8) * 255))
+    dilated = mask_img.filter(ImageFilter.MaxFilter(size=size))
+    return np.array(dilated) > 0
+
+
+def flood_within_mask(fill_allowed: np.ndarray, seed_mask: np.ndarray) -> np.ndarray:
+    """Flood-fill inside fill_allowed starting from seed_mask pixels."""
+    h, w = fill_allowed.shape
+    out = np.zeros((h, w), dtype=bool)
+    queue = deque()
+
+    ys, xs = np.where(seed_mask & fill_allowed)
+    for y, x in zip(ys, xs):
+        out[y, x] = True
+        queue.append((y, x))
+
+    while queue:
+        y, x = queue.popleft()
+        for dy, dx in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            ny, nx = y + dy, x + dx
+            if 0 <= ny < h and 0 <= nx < w and fill_allowed[ny, nx] and not out[ny, nx]:
+                out[ny, nx] = True
+                queue.append((ny, nx))
+
+    return out
+
+
 def gaussian_blur_mask(mask: np.ndarray, sigma: float = 1.5) -> np.ndarray:
     """Return a soft float mask [0, 1] by Gaussian-blurring a boolean mask."""
     mask_img = Image.fromarray((mask.astype(np.uint8) * 255))
@@ -272,11 +342,82 @@ def letterbox_to_square(img: Image.Image, bg_color: tuple = NEAR_BLACK) -> Image
     """
     w, h = img.size
     side = max(w, h)
-    square = Image.new("RGB", (side, side), bg_color)
+    if img.mode == "RGBA":
+        fill = bg_color if len(bg_color) == 4 else (bg_color[0], bg_color[1], bg_color[2], 255)
+    else:
+        fill = bg_color[:3]
+
+    square = Image.new(img.mode, (side, side), fill)
     offset_x = (side - w) // 2
     offset_y = (side - h) // 2
     square.paste(img, (offset_x, offset_y))
     return square
+
+
+def stylize_yarn_transparent(source_rgb: np.ndarray, fg_mask_soft: np.ndarray) -> Image.Image:
+    """Create transparent Yarn icon: black circle, gold outline, brown cat fill."""
+    rgb = source_rgb.astype(np.float32) / 255.0
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+
+    # The Yarn source has a blue circle and near-white cat outline.
+    blue_score = b - (0.55 * r + 0.45 * g)
+    circle_candidates = (blue_score > 0.10) & (b > 0.35)
+    circle_mask = largest_component(circle_candidates)
+
+    ys, xs = np.where(circle_mask)
+    if len(xs) == 0:
+        h, w = source_rgb.shape[:2]
+        return Image.new("RGBA", (w, h), (0, 0, 0, 0))
+
+    cx = float(np.mean(xs))
+    cy = float(np.mean(ys))
+    area = float(len(xs))
+    radius = max(12.0, np.sqrt(area / np.pi))
+
+    h, w = source_rgb.shape[:2]
+    yy, xx = np.ogrid[:h, :w]
+    dist = np.sqrt((xx - cx) ** 2 + (yy - cy) ** 2)
+
+    # Geometric circle cleans JPEG stair-steps while preserving the original size.
+    circle_geom = dist <= (radius * 1.01)
+    ring_mask = (dist >= (radius - 2.2)) & (dist <= (radius + 1.0))
+
+    lum = 0.299 * r + 0.587 * g + 0.114 * b
+    chroma = np.max(rgb, axis=2) - np.min(rgb, axis=2)
+    white_mask = (lum > 0.72) & (chroma < 0.28)
+
+    # Keep cat outline detection away from the outer circle border artifacts.
+    center_region = dist <= (radius * 0.88)
+    cat_outline = white_mask & center_region
+    cat_outline = dilate_mask(cat_outline, radius=1)
+    cat_outline = remove_small_components(cat_outline, min_pixels=max(20, (h * w) // 700))
+
+    barrier = dilate_mask(cat_outline, radius=2)
+    fillable = (dist <= (radius - 3.0)) & ~barrier
+
+    # Start from ring-adjacent pixels to get the "outside of cat" region.
+    near_edge = (dist >= (radius - 8.0)) & fillable
+    outside_region = flood_within_mask(fillable, near_edge)
+    cat_fill_mask = fillable & ~outside_region
+
+    # Fallback in case outline gaps make cat fill disappear.
+    if np.count_nonzero(cat_fill_mask) < max(20, circle_mask.size // 2000):
+        cat_fill_mask = fillable & (lum < 0.56)
+
+    outline_mask = ring_mask | cat_outline
+
+    out = np.zeros((h, w, 4), dtype=np.uint8)
+
+    out[circle_geom, :3] = np.array(YARN_CIRCLE_BLACK, dtype=np.uint8)
+    out[cat_fill_mask, :3] = np.array(YARN_CAT_BROWN, dtype=np.uint8)
+    out[outline_mask, :3] = np.array(YARN_OUTLINE_GOLD, dtype=np.uint8)
+
+    edge_soft = np.clip(radius + 0.75 - dist, 0.0, 1.0)
+    alpha = np.maximum(edge_soft, (cat_fill_mask | outline_mask).astype(np.float32))
+    alpha = np.maximum(alpha, 0.2 * fg_mask_soft.astype(np.float32) * circle_geom.astype(np.float32))
+    out[..., 3] = (np.clip(alpha, 0.0, 1.0) * 255.0).astype(np.uint8)
+
+    return Image.fromarray(out, mode="RGBA")
 
 
 def process_image(src_path: str, tolerance: float | None):
@@ -316,7 +457,7 @@ def process_image(src_path: str, tolerance: float | None):
         stretched = np.full_like(full_lum, 0.5)
     stretched = np.clip(stretched, 0, 1)
 
-    return stretched, fg_mask_smooth, img_array.shape[:2]
+    return stretched, fg_mask_smooth, img_array.shape[:2], img_array
 
 
 # ---------------------------------------------------------------------------
@@ -342,24 +483,30 @@ def main():
             print(f"  FAILED: no foreground pixels found in {src_path}")
             continue
 
-        stretched_lum, fg_mask, orig_size = result
+        stretched_lum, fg_mask, orig_size, source_rgb = result
 
         if gamma != 1.0:
             stretched_lum = np.power(stretched_lum, gamma)
 
-        metal_colored = apply_metal_ramp(stretched_lum)
+        is_yarn_v2 = "yarn_source_v2" in src_path.lower()
+        if is_yarn_v2:
+            final_img = stylize_yarn_transparent(source_rgb, fg_mask)
+            final_img = letterbox_to_square(final_img, bg_color=(0, 0, 0, 0))
+        else:
+            metal_colored = apply_metal_ramp(stretched_lum)
 
-        background = np.full((*orig_size, 3), NEAR_BLACK, dtype=np.uint8)
-        alpha_3d = fg_mask[..., np.newaxis]
-        composited = (
-            metal_colored * alpha_3d + background * (1 - alpha_3d)
-        ).astype(np.uint8)
+            background = np.full((*orig_size, 3), NEAR_BLACK, dtype=np.uint8)
+            alpha_3d = fg_mask[..., np.newaxis]
+            composited = (
+                metal_colored * alpha_3d + background * (1 - alpha_3d)
+            ).astype(np.uint8)
 
-        vignetted = apply_vignette(composited, strength=0.3)
+            vignetted = apply_vignette(composited, strength=0.3)
 
-        final_img = Image.fromarray(vignetted)
-        # Pad to square preserving aspect ratio, then resize to target.
-        final_img = letterbox_to_square(final_img)
+            final_img = Image.fromarray(vignetted)
+            # Pad to square preserving aspect ratio, then resize to target.
+            final_img = letterbox_to_square(final_img)
+
         if final_img.size != target_size:
             final_img = final_img.resize(target_size, Image.Resampling.LANCZOS)
 
