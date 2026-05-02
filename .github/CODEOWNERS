@@ -1,0 +1,10 @@
+# Default owner for all files — org maintainer review required for all changes
+
+# Workflow, security-sensitive, and config files are explicitly listed below
+
+* @RolfMoleman
+
+.github/workflows/ @RolfMoleman
+SECURITY.md @RolfMoleman
+.github/labels.yml @RolfMoleman
+renovate.json @RolfMoleman
