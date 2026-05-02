@@ -12,6 +12,7 @@ workflows used across all org repositories.
   - [Branch Naming](#branch-naming)
   - [Commit Messages](#commit-messages)
   - [Pull Requests](#pull-requests)
+  - [Branding and Imagery](#branding-and-imagery)
   - [Reporting Issues](#reporting-issues)
   - [Security Vulnerabilities](#security-vulnerabilities)
 
@@ -96,6 +97,24 @@ Available named templates:
 | Documentation | `?template=docs.md` |
 | Refactor | `?template=refactor.md` |
 | Chore / CI / Build | `?template=chore.md` |
+
+## Branding and Imagery
+
+For logos, icons, banners, and other brand visuals, follow the org branding standard in
+[BRANDING.md](BRANDING.md).
+
+Default expectation:
+
+- Use the Down At The Bottom Of The Mole Hole visual style (dark, bronze/gold palette,
+  high-contrast details).
+- Keep repository banners and icons visually consistent across repos.
+- If a banner is present at the top of a README/overview, do not add a second standalone
+  logo block directly below it unless there is a strong reason.
+
+Allowed exception:
+
+- Deliberate use of licensed third-party logos (for example Terraform or Azure logos) where
+  product attribution is required.
 
 ## Reporting Issues
 
