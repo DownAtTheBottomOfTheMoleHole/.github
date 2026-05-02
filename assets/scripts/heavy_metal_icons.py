@@ -99,7 +99,7 @@ JOBS = [
 # Flood-fill tolerance per source filename substring
 TOLERANCES = {
     "megalinter": 30,
-    "yarn_source_v2": 40,  # blue circular bg
+    "yarn_source_v2": 70,  # blue circular bg — JPEG corners vary from 221→255 (dist ~59), blue is ~220 away so 70 is safe
     "yarn": 25,
 }
 
