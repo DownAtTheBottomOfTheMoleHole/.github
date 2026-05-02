@@ -1,0 +1,46 @@
+name: "Repository/Meta"
+description: "Report an issue with repository configuration, workflows, labels, templates, or other meta concerns."
+title: "[Repo]: "
+labels: ["repository"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Thank you for opening a repository issue
+
+        Use this form for repository-level concerns such as workflows, labels, templates, automation, or contribution processes.
+
+  - type: input
+    id: affected_repository
+    attributes:
+      label: Affected Repository
+      description: Which repository is affected?
+      placeholder: "DownAtTheBottomOfTheMoleHole/repository-name"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the repository issue or proposed change.
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Add any related issues, pull requests, docs, or examples.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: will_contribute
+    attributes:
+      label: Would you like to implement a fix?
+      options:
+        - "No"
+        - "Yes"
+    validations:
+      required: false
