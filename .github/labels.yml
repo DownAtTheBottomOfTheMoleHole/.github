@@ -1,0 +1,103 @@
+# =============================================================================
+# Shared label definitions for DownAtTheBottomOfTheMoleHole repositories
+# =============================================================================
+# This file is intended to act as the source of truth for repository labels.
+#
+# Labels are organized by category:
+#   - Issue Type: Used by issue templates for auto-labeling
+#   - PR Type: Useful for releases, changelogs, and maintenance work
+#   - Status: Useful for triage and issue management
+#   - Automation: Applied by bots and automated tooling
+# =============================================================================
+
+# ---------------------
+# Issue Type Labels
+# ---------------------
+- name: "bug"
+  color: "d73a4a"
+  description: "Something is not working"
+
+- name: "enhancement"
+  color: "a2eeef"
+  description: "Improvement or request"
+
+- name: "feature"
+  color: "0075ca"
+  description: "New feature implementation"
+
+- name: "documentation"
+  color: "0075ca"
+  description: "Improvements or additions to documentation"
+
+- name: "repository"
+  color: "7057ff"
+  description: "Repository configuration, workflows, or automation"
+
+# ---------------------
+# PR / Changelog Labels
+# ---------------------
+- name: "breaking-change"
+  color: "b60205"
+  description: "Introduces a breaking change"
+
+- name: "security"
+  color: "e4e669"
+  description: "Security-related fix or update"
+
+- name: "dependencies"
+  color: "0366d6"
+  description: "Dependency updates"
+
+- name: "chore"
+  color: "fef2c0"
+  description: "Routine maintenance tasks"
+
+- name: "maintenance"
+  color: "fbca04"
+  description: "Repository or project maintenance"
+
+# ---------------------
+# Status Labels
+# ---------------------
+- name: "good first issue"
+  color: "7057ff"
+  description: "Good for newcomers"
+
+- name: "help wanted"
+  color: "008672"
+  description: "Extra attention is needed"
+
+- name: "wontfix"
+  color: "ffffff"
+  description: "This will not be worked on"
+
+- name: "duplicate"
+  color: "cfd3d7"
+  description: "This issue or pull request already exists"
+
+- name: "invalid"
+  color: "e4e669"
+  description: "This does not seem right"
+
+- name: "question"
+  color: "d876e3"
+  description: "Further information is requested"
+
+- name: "skip-changelog"
+  color: "ededed"
+  description: "Exclude from release changelog"
+
+# ---------------------
+# Automation Labels
+# ---------------------
+- name: "renovate"
+  color: "1d76db"
+  description: "Automated dependency update by Renovate"
+
+- name: "bot"
+  color: "ededed"
+  description: "Automated pull request from a bot"
+
+- name: "copilot"
+  color: "6f42c1"
+  description: "Created or assisted by GitHub Copilot"
