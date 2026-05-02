@@ -379,9 +379,9 @@ def stylize_yarn_transparent(
     rgb = source_rgb.astype(np.float32) / 255.0
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
 
-    # The Yarn source has a blue circle and near-white cat outline.
+    # Blue circle detection (source has blue disk over checkerboard).
     blue_score = b - (0.55 * r + 0.45 * g)
-    circle_candidates = (blue_score > 0.10) & (b > 0.35)
+    circle_candidates = (blue_score > 0.10) & (b > 0.34)
     circle_mask = largest_component(circle_candidates)
 
     ys, xs = np.where(circle_mask)
@@ -398,63 +398,39 @@ def stylize_yarn_transparent(
     yy, xx = np.ogrid[:h, :w]
     dist = np.sqrt((xx - cx) ** 2 + (yy - cy) ** 2)
 
-    # Geometric circle cleans JPEG stair-steps while preserving the original size.
     circle_geom = dist <= radius
     ring_mask = np.abs(dist - radius) <= 0.85
-    ring_mask = largest_component(ring_mask)
 
     lum = 0.299 * r + 0.587 * g + 0.114 * b
     chroma = np.max(rgb, axis=2) - np.min(rgb, axis=2)
-    white_mask = (lum > 0.72) & (chroma < 0.28)
+    white_stroke = (lum > 0.76) & (chroma < 0.24) & (dist <= (radius * 0.90))
+    white_stroke = remove_small_components(white_stroke, min_pixels=max(14, (h * w) // 2600))
 
-    # Keep cat outline detection away from the outer circle border artifacts.
-    center_region = (dist <= (radius * 0.88)) & (yy >= (cy - radius * 0.70))
-    cat_outline = white_mask & center_region
-    # Build a cleaner cat path from JPEG source while preserving narrow details.
-    cat_outline = dilate_mask(cat_outline, radius=1)
-    cat_outline = erode_mask(cat_outline, radius=1)
-    cat_outline = remove_small_components(cat_outline, min_pixels=max(36, (h * w) // 420))
-    cat_outline = largest_component(cat_outline)
-    cat_outline = erode_mask(cat_outline, radius=1)
-
-    # Close tiny breaks in the outline to allow enclosed-shape filling.
-    cat_wall = dilate_mask(cat_outline, radius=2)
+    # Strengthen wall continuity for reliable enclosed-fill extraction.
+    cat_wall = dilate_mask(white_stroke, radius=2)
     cat_wall = erode_mask(cat_wall, radius=1)
 
-    fillable = (dist <= (radius - 2.8)) & ~cat_wall
-
-    # Flood from near circle edge to mark outside-of-cat area; remaining becomes cat fill.
-    near_edge = (dist >= (radius - 7.5)) & fillable
+    fillable = (dist <= (radius - 3.0)) & ~cat_wall
+    near_edge = (dist >= (radius - 7.0)) & fillable
     outside_region = flood_within_mask(fillable, near_edge)
-    enclosed_region = fillable & ~outside_region
+    cat_fill_mask = fillable & ~outside_region
 
-    # Depending on tiny mask breaks, flood orientation can invert.
-    # Prefer the smaller plausible body region as cat fill.
-    outside_area = np.count_nonzero(outside_region)
-    enclosed_area = np.count_nonzero(enclosed_region)
-    if enclosed_area <= outside_area:
-        cat_fill_mask = enclosed_region
-    else:
-        cat_fill_mask = outside_region
+    # Fallback for rare open-wall cases.
+    if np.count_nonzero(cat_fill_mask) < max(30, (h * w) // 900):
+        non_blue = (blue_score < 0.03) & (dist <= (radius * 0.88))
+        cat_fill_mask = largest_component(dilate_mask(non_blue, radius=1))
 
-    cat_fill_mask &= dist <= (radius * 0.90)
-
-    # Fallback in case outline gaps make cat fill disappear.
-    if np.count_nonzero(cat_fill_mask) < max(20, circle_mask.size // 2000):
-        cat_fill_mask = fillable & (lum < 0.56)
-    cat_fill_mask = remove_small_components(cat_fill_mask, min_pixels=max(48, (h * w) // 360))
+    cat_fill_mask = remove_small_components(cat_fill_mask, min_pixels=max(40, (h * w) // 700))
     cat_fill_mask = largest_component(cat_fill_mask)
 
-    outline_mask = ring_mask | cat_outline
+    cat_border = dilate_mask(cat_fill_mask, radius=1) & ~erode_mask(cat_fill_mask, radius=1)
+    outline_mask = ring_mask | cat_border
 
     out = np.zeros((h, w, 4), dtype=np.uint8)
-
     out[circle_geom, :3] = np.array(YARN_CIRCLE_BLACK, dtype=np.uint8)
     out[cat_fill_mask, :3] = np.array(YARN_CAT_BROWN, dtype=np.uint8)
     out[outline_mask, :3] = np.array(YARN_OUTLINE_GOLD, dtype=np.uint8)
-
-    alpha = circle_geom.astype(np.uint8) * 255
-    out[..., 3] = alpha
+    out[..., 3] = (circle_geom.astype(np.uint8) * 255)
 
     return Image.fromarray(out, mode="RGBA")
 
@@ -547,10 +523,10 @@ def main():
             final_img = letterbox_to_square(final_img)
 
         if final_img.size != target_size:
-            resample = Image.Resampling.LANCZOS
+            resize_mode = Image.Resampling.LANCZOS
             if is_yarn_v2:
-                resample = Image.Resampling.NEAREST
-            final_img = final_img.resize(target_size, resample)
+                resize_mode = Image.Resampling.NEAREST
+            final_img = final_img.resize(target_size, resize_mode)
 
         if is_yarn_v2:
             # Preserve clean edges; avoid post-sharpen artifacts on circular borders.
