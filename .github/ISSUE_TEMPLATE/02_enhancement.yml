@@ -1,0 +1,62 @@
+name: "Request an Enhancement"
+description: "Request an improvement, new capability, or better workflow."
+title: "[Enhancement]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Thank you for opening an enhancement request
+
+        Use this form for improvements to an existing project, workflow, or integration.
+
+  - type: input
+    id: affected_repository
+    attributes:
+      label: Affected Repository
+      description: Which repository is affected?
+      placeholder: "DownAtTheBottomOfTheMoleHole/repository-name"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the requested enhancement.
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation / Why
+      description: What problem does this solve, and why is it useful?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What alternatives have you considered?
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Add any extra context, examples, or screenshots.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: will_contribute
+    attributes:
+      label: Would you like to implement a fix?
+      options:
+        - "No"
+        - "Yes"
+    validations:
+      required: false
