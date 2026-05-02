@@ -1,6 +1,6 @@
 # Down At The Bottom Of The Mole Hole
 
-![Banner](https://raw.githubusercontent.com/DownAtTheBottomOfTheMoleHole/.github/main/95276D17-04ED-4258-9CCC-B98C0F68D06C.png)
+![Banner](https://raw.githubusercontent.com/DownAtTheBottomOfTheMoleHole/.github/main/assets/95276D17-04ED-4258-9CCC-B98C0F68D06C.png)
 
 [![name][logo-image]](https://github.com/DownAtTheBottomOfTheMoleHole/)
 
@@ -44,4 +44,4 @@ without prior written permission.
 [LICENSE]: https://github.com/DownAtTheBottomOfTheMoleHole/.github/blob/main/LICENSE.md
 <!-- IMAGES AND ICONS -->
 
-[logo-image]: raw.githubusercontent.com/DownAtTheBottomOfTheMoleHole/.github/main/assets/412F3606-3C65-4552-92EA-DA17B57BCCDA.png
+[logo-image]: https://raw.githubusercontent.com/DownAtTheBottomOfTheMoleHole/.github/main/assets/412F3606-3C65-4552-92EA-DA17B57BCCDA.png
