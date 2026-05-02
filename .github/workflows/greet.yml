@@ -1,0 +1,46 @@
+---
+# Reusable first interaction workflow — DownAtTheBottomOfTheMoleHole
+#
+# Call from another repo:
+#   on:
+#     issues:
+#       types: [opened]
+#     pull_request_target:
+#       types: [opened]
+#
+#   jobs:
+#     greet:
+#       uses: DownAtTheBottomOfTheMoleHole/.github/.github/workflows/greet.yml@main
+#       permissions:
+#         issues: write
+#         pull-requests: write
+
+name: 👋 Greet First-Time Contributors
+
+on:
+  workflow_call:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  greet:
+    name: First Interaction Greeting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 👋 Welcome first-time contributors
+        uses: actions/first-interaction@34f15e814fe48ac9312ccf29db4e74fa767cbab7 # v1.3.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: |
+            Thanks for opening your first issue in DownAtTheBottomOfTheMoleHole.
+
+            A maintainer will triage it soon. If you can add reproduction steps,
+            expected behaviour, or supporting context, that helps keep turnaround tight.
+          pr-message: |
+            Thanks for your first pull request in DownAtTheBottomOfTheMoleHole.
+
+            A maintainer will review it once checks have finished. Please make sure the
+            PR title follows the conventional format and that the checklist is complete.

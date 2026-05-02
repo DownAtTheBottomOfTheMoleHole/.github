@@ -1,0 +1,65 @@
+---
+# Reusable Renovate auto-merge workflow — DownAtTheBottomOfTheMoleHole
+#
+# Call from another repo:
+#   on:
+#     pull_request_target:
+#       types: [opened, edited, synchronize, reopened, ready_for_review, labeled, unlabeled]
+#
+#   jobs:
+#     auto-merge:
+#       uses: DownAtTheBottomOfTheMoleHole/.github/.github/workflows/auto-merge.yml@main
+#       secrets: inherit
+#       permissions:
+#         contents: write
+#         pull-requests: write
+
+name: 🤖 Auto Merge
+
+on:
+  workflow_call:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  enable-auto-merge:
+    name: Enable Auto Merge for Eligible Bot PRs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔎 Evaluate PR eligibility
+        id: eligibility
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+
+            if (!pr) {
+              core.setFailed('This reusable workflow must be called from a pull_request_target-based workflow.');
+              return;
+            }
+
+            const labels = pr.labels.map((label) => label.name);
+            const eligible = pr.user.login === 'renovate[bot]' && !pr.draft && !labels.includes('Semver Major');
+            const reason = eligible
+              ? 'Eligible for auto-merge.'
+              : 'Skipping: only non-draft Renovate PRs without the Semver Major label are auto-merged.';
+
+            core.setOutput('eligible', String(eligible));
+            core.setOutput('reason', reason);
+
+      - name: 📝 Report skipped PRs
+        if: steps.eligibility.outputs.eligible != 'true'
+        run: echo "${{ steps.eligibility.outputs.reason }}"
+
+      - name: 🤖 Enable squash auto-merge
+        if: steps.eligibility.outputs.eligible == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge "${{ github.event.pull_request.number }}" \
+            --auto \
+            --squash \
+            --delete-branch=false

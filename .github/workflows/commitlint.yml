@@ -1,0 +1,83 @@
+---
+# Reusable PR title lint workflow — DownAtTheBottomOfTheMoleHole
+#
+# Call from another repo:
+#   on:
+#     pull_request:
+#       types: [opened, edited, synchronize, reopened]
+#
+#   jobs:
+#     commitlint:
+#       uses: DownAtTheBottomOfTheMoleHole/.github/.github/workflows/commitlint.yml@main
+#       with:
+#         require-gitmoji: false
+#       permissions:
+#         pull-requests: read
+
+name: 🧾 Commitlint
+
+on:
+  workflow_call:
+    inputs:
+      require-gitmoji:
+        description: "Require a leading gitmoji in the PR title"
+        type: boolean
+        default: false
+
+permissions:
+  pull-requests: read
+
+jobs:
+  pr-title:
+    name: Lint PR Title
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧾 Validate pull request title
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+
+            if (!pr) {
+              core.setFailed('This reusable workflow must be called from a pull_request-based workflow.');
+              return;
+            }
+
+            const requireGitmoji = core.getInput('require-gitmoji') === 'true';
+            const title = pr.title.trim();
+            const titlePattern = /^(?:(?<gitmoji>\S+)\s+)?(?<type>feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert|security)(?:\((?<scope>[a-z0-9][a-z0-9._\/-]*)\))?(?<breaking>!)?: (?<subject>.+)$/u;
+            const match = title.match(titlePattern);
+
+            if (!match) {
+              core.setFailed([
+                `Invalid PR title: "${title}"`,
+                'Expected format: <gitmoji> <type>(<scope>): <subject>',
+                'Examples:',
+                '  ✨ feat(api): add release workflow',
+                '  fix(ci): correct stale permissions',
+                '  💥 feat(api)!: remove deprecated endpoint',
+              ].join('\n'));
+              return;
+            }
+
+            const { gitmoji, subject } = match.groups;
+
+            if (requireGitmoji && !gitmoji) {
+              core.setFailed('A leading gitmoji is required for PR titles in this repository.');
+              return;
+            }
+
+            if (title.length > 100) {
+              core.setFailed(`PR title exceeds 100 characters (${title.length}/100).`);
+              return;
+            }
+
+            if (subject.endsWith('.')) {
+              core.setFailed('PR title subject must not end with a period.');
+              return;
+            }
+
+            if (!subject.trim()) {
+              core.setFailed('PR title subject must not be empty.');
+            }

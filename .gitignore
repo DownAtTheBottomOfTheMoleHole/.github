@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Node / JavaScript
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Coverage / reports
+.coverage
+coverage/
+megalinter-reports/
+
+# Build output
+dist/
+build/

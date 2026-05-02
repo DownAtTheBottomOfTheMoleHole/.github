@@ -1,0 +1,58 @@
+# GitVersion 6 baseline for DownAtTheBottomOfTheMoleHole repositories.
+#
+# This baseline assumes a GitHub Flow style with releases cut from tags on main,
+# preview versions on feature / PR branches, and version increments driven by
+# conventional commit style merge messages.
+---
+workflow: GitHubFlow/v1
+mode: ContinuousDelivery
+tag-prefix: '[vV]?'
+semantic-version-format: Strict
+update-build-number: true
+commit-message-incrementing: MergeMessageOnly
+
+# Conventional commit driven version increments.
+# Squash merge commit messages in GitHub typically reuse the PR title, which keeps
+# version increments aligned with the title linting policy.
+major-version-bump-message: "^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test|security)(\\([\\w\\s.,_\/-]*\\))?(!:|:.*\\n\\n((.+\\n)+\\n)?BREAKING CHANGE:\\s.+)"
+minor-version-bump-message: "^(feat)(\\([\\w\\s.,_\/-]*\\))?:"
+patch-version-bump-message: "^(fix|perf|revert|security)(\\([\\w\\s.,_\/-]*\\))?:"
+no-bump-message: "^(docs|style|test|build|ci|chore)(\\([\\w\\s.,_\/-]*\\))?:"
+
+assembly-versioning-scheme: MajorMinorPatch
+assembly-file-versioning-format: '{Major}.{Minor}.{Patch}.{WeightedPreReleaseNumber ?? 0}'
+assembly-informational-format: '{InformationalVersion}'
+
+branches:
+  main:
+    label: ''
+    increment: Patch
+
+  release:
+    mode: ManualDeployment
+    label: rc
+    increment: Patch
+
+  feature:
+    mode: ContinuousDelivery
+    label: alpha.{BranchName}
+    increment: Inherit
+
+  pull-request:
+    mode: ContinuousDelivery
+    label: PullRequest{Number}
+    increment: Inherit
+
+  hotfix:
+    mode: ContinuousDelivery
+    label: beta.{BranchName}
+    increment: Patch
+
+  unknown:
+    mode: ContinuousDelivery
+    label: alpha.{BranchName}
+    increment: Inherit
+
+ignore:
+  sha: []
+  paths: []

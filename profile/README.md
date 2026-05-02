@@ -4,7 +4,8 @@
 
 ## About
 
-Down At The Bottom Of The Mole Hole is a small engineering organisation focused primarily on Terraform, automation, and practical platform tooling.
+Down At The Bottom Of The Mole Hole is a small engineering organisation focused
+primarily on Terraform, automation, and practical platform tooling.
 
 ## What You'll Find Here
 
