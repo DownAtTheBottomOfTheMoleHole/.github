@@ -1,0 +1,17 @@
+# markdownlint-cli2 configuration — DownAtTheBottomOfTheMoleHole
+# https://github.com/DavidAnson/markdownlint-cli2#configuration
+#
+# Inherits rules from .markdownlint.yaml and adds CLI-level ignore patterns.
+---
+config:
+  extends: .markdownlint.yaml
+
+ignoreFiles:
+  # CODEOWNERS uses # as comments, not Markdown headings
+  - "**/.github/CODEOWNERS"
+  - "CODEOWNERS"
+  # Generated / vendored content
+  - "**/node_modules/**"
+  - "**/dist/**"
+  - "**/coverage/**"
+  - "**/megalinter-reports/**"
