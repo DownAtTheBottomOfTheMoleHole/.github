@@ -1,0 +1,77 @@
+# ─── Default behaviour ─────────────────────────────────────────────────────────
+# Normalise line endings to LF on checkout and commit
+* text=auto eol=lf
+
+# ─── Source code ───────────────────────────────────────────────────────────────
+*.ts            text eol=lf
+*.tsx           text eol=lf
+*.js            text eol=lf
+*.jsx           text eol=lf
+*.mjs           text eol=lf
+*.cjs           text eol=lf
+*.json          text eol=lf
+*.yaml          text eol=lf
+*.yml           text eol=lf
+*.toml          text eol=lf
+*.md            text eol=lf
+*.mdx           text eol=lf
+*.html          text eol=lf
+*.css           text eol=lf
+*.scss          text eol=lf
+*.sh            text eol=lf
+*.bash          text eol=lf
+*.zsh           text eol=lf
+*.tf            text eol=lf
+*.hcl           text eol=lf
+*.py            text eol=lf
+*.go            text eol=lf
+*.rb            text eol=lf
+*.xml           text eol=lf
+*.svg           text eol=lf
+
+# ─── Windows scripts (retain CRLF) ─────────────────────────────────────────────
+*.bat           text eol=crlf
+*.cmd           text eol=crlf
+*.ps1           text eol=crlf
+*.psm1          text eol=crlf
+*.psd1          text eol=crlf
+
+# ─── Makefiles (tabs required) ─────────────────────────────────────────────────
+Makefile        text eol=lf
+GNUmakefile     text eol=lf
+makefile        text eol=lf
+
+# ─── Binary files ──────────────────────────────────────────────────────────────
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.ico           binary
+*.webp          binary
+*.woff          binary
+*.woff2         binary
+*.ttf           binary
+*.eot           binary
+*.otf           binary
+*.zip           binary
+*.tar           binary
+*.gz            binary
+*.tgz           binary
+*.7z            binary
+*.bz2           binary
+*.pdf           binary
+*.vsix          binary
+
+# ─── Lock files — treated as binary to prevent merge conflicts ─────────────────
+package-lock.json   binary
+yarn.lock           binary
+pnpm-lock.yaml      binary
+
+# ─── Diffs — use custom diff drivers for readability ──────────────────────────
+*.json          diff=json
+
+# ─── GitHub Linguist — language detection overrides ───────────────────────────
+docs/**                         linguist-documentation
+*.config.js                     linguist-language=JavaScript
+*.config.ts                     linguist-language=TypeScript
+*.config.mjs                    linguist-language=JavaScript
