@@ -1,0 +1,13 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security Policy
+    url: https://github.com/DownAtTheBottomOfTheMoleHole/.github/blob/main/SECURITY.md
+    about: Please review the organisation security policy before reporting a vulnerability.
+
+  - name: Organisation Overview
+    url: https://github.com/DownAtTheBottomOfTheMoleHole
+    about: View the organisation profile, repositories, and shared links.
+
+  - name: Visual Studio Marketplace
+    url: https://marketplace.visualstudio.com/publishers/DownAtTheBottomOfTheMoleHole
+    about: View the organisation publisher page on Visual Studio Marketplace.
