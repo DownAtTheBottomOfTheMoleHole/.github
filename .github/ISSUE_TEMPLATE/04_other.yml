@@ -1,0 +1,45 @@
+name: "Other"
+description: "Use this when your issue does not fit the other available forms."
+title: "[Other]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Thank you for raising an issue
+
+        Use this form when none of the other categories fit. The more context you can provide, the easier it is to triage.
+
+  - type: input
+    id: affected_repository
+    attributes:
+      label: Affected Repository
+      description: Which repository is affected?
+      placeholder: "DownAtTheBottomOfTheMoleHole/repository-name"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the issue in as much detail as you can.
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Add any related issues, pull requests, docs, screenshots, or links.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: will_contribute
+    attributes:
+      label: Would you like to implement a fix?
+      options:
+        - "No"
+        - "Yes"
+    validations:
+      required: false
