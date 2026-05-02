@@ -1,0 +1,36 @@
+---
+# Reusable Dependency Review workflow — DownAtTheBottomOfTheMoleHole
+#
+# Call from another repo (triggers automatically on pull_request in calling repo):
+#   jobs:
+#     dependency-review:
+#       uses: DownAtTheBottomOfTheMoleHole/.github/.github/workflows/dependency-review.yml@main
+#       secrets: inherit
+#       permissions:
+#         contents: read
+#         pull-requests: write
+
+name: 🔐 Dependency Review
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+
+      - name: 🔐 Review Dependencies
+        uses: actions/dependency-review-action@38ecb5b593bf0eb19e335c03f97670f792489a8b # v4.7.0
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: always
+          warn-only: false
