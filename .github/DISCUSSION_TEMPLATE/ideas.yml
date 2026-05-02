@@ -1,0 +1,42 @@
+title: "[Idea] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Got an idea or a feature suggestion? Share it here!
+        Please search existing ideas before posting.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Motivation
+      description: What problem does this idea solve? What prompted this suggestion?
+      placeholder: "I often find myself needing to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution or feature you have in mind.
+      placeholder: "I think it would be helpful if..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternatives or workarounds?
+      placeholder: "I've tried... but it doesn't work because..."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I would be willing to contribute a PR for this idea
+          required: false
