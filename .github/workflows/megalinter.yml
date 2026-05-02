@@ -1,0 +1,66 @@
+---
+# Reusable MegaLinter workflow — DownAtTheBottomOfTheMoleHole
+#
+# Call from another repo:
+#   jobs:
+#     megalinter:
+#       uses: DownAtTheBottomOfTheMoleHole/.github/.github/workflows/megalinter.yml@main
+#       secrets: inherit
+#       with:
+#         apply-fixes: all
+#         create-fix-pr: true
+
+name: 🧹 MegaLinter
+
+on:
+  workflow_call:
+    inputs:
+      apply-fixes:
+        description: "Which linters can auto-fix (all | none | <linter_key>)"
+        type: string
+        default: all
+      create-fix-pr:
+        description: "Open a PR with auto-fix commits instead of committing directly"
+        type: boolean
+        default: false
+      validate-all:
+        description: "Validate the full codebase (true) or only changed files (false)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  statuses: write
+
+jobs:
+  megalinter:
+    name: MegaLinter
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.2.2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🧹 Run MegaLinter
+        uses: oxsecurity/megalinter@8fbdead70d1409964ab3d5afa885e18ee85388bb # v9.4.0
+        env:
+          APPLY_FIXES: ${{ inputs.apply-fixes }}
+          APPLY_FIXES_EVENT: pull_request
+          APPLY_FIXES_MODE: ${{ inputs.create-fix-pr && 'pull_request' || 'commit' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ALL_CODEBASE: ${{ inputs.validate-all }}
+
+      - name: 📤 Upload MegaLinter reports
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: megalinter-reports
+          path: |
+            megalinter-reports/
+            mega-linter.log
+          retention-days: 7
