@@ -1,0 +1,40 @@
+changelog:
+  categories:
+    - title: "💥 Breaking Changes"
+      labels:
+        - breaking-change
+
+    - title: "✨ Features"
+      labels:
+        - enhancement
+        - feature
+
+    - title: "🐛 Bug Fixes"
+      labels:
+        - bug
+
+    - title: "🔒 Security"
+      labels:
+        - security
+
+    - title: "📝 Documentation"
+      labels:
+        - documentation
+
+    - title: "📦 Dependencies"
+      labels:
+        - dependencies
+
+    - title: "🧰 Maintenance"
+      labels:
+        - maintenance
+        - chore
+
+    - title: "🔧 Repository"
+      labels:
+        - ci
+        - infrastructure
+
+    - title: "Other Changes"
+      labels:
+        - "*"
