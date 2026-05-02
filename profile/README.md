@@ -1,30 +1,39 @@
+<!-- markdownlint-disable-file MD041 -->
 
 [![Banner][Banner-image]](https://github.com/DownAtTheBottomOfTheMoleHole/)
 
-## About Us
+## About
 
-We are a small organisation working primarily with terraform
+Down At The Bottom Of The Mole Hole is a small engineering organisation focused primarily on Terraform, automation, and practical platform tooling.
 
-## Our Projects
+## What You'll Find Here
 
-We have a small number of open source projects, mostly forks of other public repositories you may wish to contribute to
+- Open source projects and experiments
+- Forks of useful upstream repositories
+- Tooling for infrastructure, quality, and developer workflows
 
-## Contact Us
+## Links
 
-If you have any questions, feel free to reach out to us via @RolfMoleman.
+- Visual Studio Marketplace: [DownAtTheBottomOfTheMoleHole][marketplace]
+- Organisation owner: [rolfmoleman][owner]
+- GitHub organisation: [DownAtTheBottomOfTheMoleHole][org]
 
-## License
+## Contact
 
-All our projects are licensed for internal use only. For more details, see the [LICENSE](https://github.com/DownAtTheBottomOfTheMoleHole/.github/blob/main/LICENSE) file in each project repository.
+For questions, feedback, or collaboration, please reach out via [@rolfmoleman][owner].
+
+## Licensing
+
+Each repository defines its own licensing terms. Please review the relevant `LICENSE` file in the repository you are using.
 
 ## Images and assets
 
 IMAGE LICENCE (LOGO & BANNER)
 
-All images in this repository (including logo.png and banner.png)
-are proprietary and copyright © 2026 DownAtTheBottomOfTheMoleHole.
+All images in this repository, are proprietary and copyright © 2026 DownAtTheBottomOfTheMoleHole.
 
 These assets may not be:
+
 - Reproduced
 - Modified
 - Distributed
@@ -37,9 +46,9 @@ without prior written permission.
 
 <!-- docs -->
 
-[code-of-conduct]: https://github.com/DownAtTheBottomOfTheMoleHole/.github/blob/main/CODE_OF_CONDUCT.md
-[LICENSE]: https://github.com/DownAtTheBottomOfTheMoleHole/.github/blob/main/LICENSE.md
+[marketplace]: https://marketplace.visualstudio.com/publishers/DownAtTheBottomOfTheMoleHole
+[org]: https://github.com/DownAtTheBottomOfTheMoleHole
+[owner]: https://github.com/rolfmoleman
 <!-- IMAGES AND ICONS -->
 
-[Banner-image]: https://raw.githubusercontent.com/DownAtTheBottomOfTheMoleHole/.github/main/assets/95276D17-04ED-4258-9CCC-B98C0F68D06C.png
-[logo-image]: https://raw.githubusercontent.com/DownAtTheBottomOfTheMoleHole/.github/main/assets/412F3606-3C65-4552-92EA-DA17B57BCCDA.png
+[Banner-image]: https://raw.githubusercontent.com/DownAtTheBottomOfTheMoleHole/.github/main/assets/snagglemole_banner.png
