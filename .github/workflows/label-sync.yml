@@ -1,0 +1,92 @@
+---
+name: 🏷️ Sync Labels Org-Wide
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/labels.yml"
+  schedule:
+    - cron: "0 9 * * 1" # Every Monday at 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync-labels:
+    name: Sync Labels to All Repos
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Sync labels to all org repos
+        env:
+          GH_TOKEN: ${{ secrets.ORG_LABEL_SYNC_TOKEN }}
+        run: |
+          python3 - <<'PYEOF'
+          import json, yaml, subprocess, sys
+          from urllib.parse import quote
+
+          ORG = 'DownAtTheBottomOfTheMoleHole'
+
+          with open('.github/labels.yml') as f:
+              desired_labels = yaml.safe_load(f)
+
+          repos_result = subprocess.run(
+              ['gh', 'repo', 'list', ORG, '--json', 'nameWithOwner', '--limit', '1000'],
+              capture_output=True, text=True, check=True,
+          )
+          repos = [r['nameWithOwner'] for r in json.loads(repos_result.stdout)]
+
+          failures = []
+          for repo in repos:
+              print(f'\n::group::Syncing {len(desired_labels)} labels to {repo}')
+
+              existing_result = subprocess.run(
+                  ['gh', 'api', f'repos/{repo}/labels', '--paginate'],
+                  capture_output=True, text=True,
+              )
+              existing = {lbl['name'] for lbl in json.loads(existing_result.stdout or '[]')}
+
+              for label in desired_labels:
+                  name        = label['name']
+                  color       = str(label.get('color', 'ededed')).lstrip('#')
+                  description = str(label.get('description') or '')
+
+                  if name in existing:
+                      r = subprocess.run(
+                          ['gh', 'api', f'repos/{repo}/labels/{quote(name)}',
+                           '-X', 'PATCH',
+                           '-f', f'color={color}',
+                           '-f', f'description={description}'],
+                          capture_output=True, text=True,
+                      )
+                      verb = 'Updated'
+                  else:
+                      r = subprocess.run(
+                          ['gh', 'api', f'repos/{repo}/labels',
+                           '-X', 'POST',
+                           '-f', f'name={name}',
+                           '-f', f'color={color}',
+                           '-f', f'description={description}'],
+                          capture_output=True, text=True,
+                      )
+                      verb = 'Created'
+
+                  if r.returncode == 0:
+                      print(f'  ✅ {verb}: {name}')
+                  else:
+                      print(f'  ⚠️  Failed {verb.lower()}: {name}')
+                      failures.append(f'{repo}/{name}: {r.stderr.strip()}')
+
+              print('::endgroup::')
+
+          if failures:
+              print('\n::warning::Label sync failures:')
+              for f in failures:
+                  print(f'  {f}')
+              sys.exit(1)
+          PYEOF
