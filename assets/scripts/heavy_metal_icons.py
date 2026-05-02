@@ -109,41 +109,118 @@ TOLERANCES = {
 # ---------------------------------------------------------------------------
 
 
-def flood_fill_background(img_array: np.ndarray, tolerance: float) -> np.ndarray:
-    """Return a boolean foreground mask.
+def _edge_mask(h: int, w: int, thickness: int = 1) -> np.ndarray:
+    mask = np.zeros((h, w), dtype=bool)
+    mask[:thickness, :] = True
+    mask[-thickness:, :] = True
+    mask[:, :thickness] = True
+    mask[:, -thickness:] = True
+    return mask
 
-    BFS from all four corners removes the connected background region.
-    The seed colour is taken from each corner pixel. Pixels within
-    *tolerance* (Euclidean RGB distance from the seed) that are reachable
-    from a corner without crossing a foreground boundary are marked as
-    background.
+
+def _adaptive_tolerance_from_edges(img_array: np.ndarray, fallback: float | None) -> float:
+    """Estimate a flood-fill tolerance from border colour variation.
+
+    Uses edge pixels to infer the background colour spread, then adds a margin
+    so JPEG artifacts and mild gradients are included.
+    """
+    h, w = img_array.shape[:2]
+    thickness = max(1, min(h, w) // 64)
+    edge = _edge_mask(h, w, thickness=thickness)
+    edge_pixels = img_array[edge, :3].astype(float)
+
+    if edge_pixels.size == 0:
+        return fallback if fallback is not None else 35.0
+
+    bg_color = np.median(edge_pixels, axis=0)
+    dists = np.linalg.norm(edge_pixels - bg_color, axis=1)
+    base = float(np.percentile(dists, 95) + 8.0)
+
+    if fallback is None:
+        return max(25.0, min(base, 120.0))
+
+    return max(float(fallback), min(base, 120.0))
+
+
+def flood_fill_background(img_array: np.ndarray, tolerance: float | None) -> np.ndarray:
+    """Return a boolean foreground mask from adaptive edge-seeded flood fill.
+
+    Seeds flood fill from all border pixels that are within *tolerance* of
+    the inferred border background colour. This is more robust than corner-only
+    seeding for JPEG artifacts, anti-aliased edges, and non-uniform corners.
 
     Returns a boolean array of shape (H, W): True = foreground.
     """
     h, w = img_array.shape[:2]
-    mask = np.zeros((h, w), dtype=bool)  # True = background (will be inverted)
-    corners = [(0, 0), (0, w - 1), (h - 1, 0), (h - 1, w - 1)]
+    bg_mask = np.zeros((h, w), dtype=bool)  # True = background
 
-    for cy, cx in corners:
-        if mask[cy, cx]:
-            continue
-        seed_color = img_array[cy, cx, :3].astype(float)
-        queue = deque([(cy, cx)])
-        mask[cy, cx] = True
+    effective_tolerance = _adaptive_tolerance_from_edges(img_array, tolerance)
 
-        while queue:
-            y, x = queue.popleft()
-            for dy, dx in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-                ny, nx = y + dy, x + dx
-                if 0 <= ny < h and 0 <= nx < w and not mask[ny, nx]:
-                    dist = np.linalg.norm(
-                        img_array[ny, nx, :3].astype(float) - seed_color
-                    )
-                    if dist <= tolerance:
-                        mask[ny, nx] = True
-                        queue.append((ny, nx))
+    thickness = max(1, min(h, w) // 64)
+    edge = _edge_mask(h, w, thickness=thickness)
+    edge_pixels = img_array[edge, :3].astype(float)
+    bg_color = np.median(edge_pixels, axis=0)
 
-    return ~mask  # invert: True = foreground
+    seeds = np.argwhere(edge)
+    queue = deque()
+    for sy, sx in seeds:
+        dist_bg = np.linalg.norm(img_array[sy, sx, :3].astype(float) - bg_color)
+        if dist_bg <= effective_tolerance:
+            bg_mask[sy, sx] = True
+            queue.append((sy, sx))
+
+    while queue:
+        y, x = queue.popleft()
+        for dy, dx in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            ny, nx = y + dy, x + dx
+            if 0 <= ny < h and 0 <= nx < w and not bg_mask[ny, nx]:
+                neighbor = img_array[ny, nx, :3].astype(float)
+                dist_bg = np.linalg.norm(neighbor - bg_color)
+                if dist_bg <= effective_tolerance:
+                    bg_mask[ny, nx] = True
+                    queue.append((ny, nx))
+
+    return ~bg_mask
+
+
+def remove_small_components(mask: np.ndarray, min_pixels: int) -> np.ndarray:
+    """Remove tiny disconnected foreground islands from a boolean mask."""
+    h, w = mask.shape
+    visited = np.zeros((h, w), dtype=bool)
+    out = np.zeros((h, w), dtype=bool)
+    largest_component = []
+
+    for y in range(h):
+        for x in range(w):
+            if not mask[y, x] or visited[y, x]:
+                continue
+
+            queue = deque([(y, x)])
+            visited[y, x] = True
+            component = []
+
+            while queue:
+                cy, cx = queue.popleft()
+                component.append((cy, cx))
+                for dy, dx in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                    ny, nx = cy + dy, cx + dx
+                    if 0 <= ny < h and 0 <= nx < w:
+                        if mask[ny, nx] and not visited[ny, nx]:
+                            visited[ny, nx] = True
+                            queue.append((ny, nx))
+
+            if len(component) >= min_pixels:
+                for py, px in component:
+                    out[py, px] = True
+
+            if len(component) > len(largest_component):
+                largest_component = component
+
+    if not np.any(out) and largest_component:
+        for py, px in largest_component:
+            out[py, px] = True
+
+    return out
 
 
 def gaussian_blur_mask(mask: np.ndarray, sigma: float = 1.5) -> np.ndarray:
@@ -202,17 +279,27 @@ def letterbox_to_square(img: Image.Image, bg_color: tuple = NEAR_BLACK) -> Image
     return square
 
 
-def process_image(src_path: str, tolerance: float):
+def process_image(src_path: str, tolerance: float | None):
     """Load source image and compute stretched luminance + fg mask.
 
     The image is NOT padded here — flood-fill must seed from the original
     image corners so it correctly identifies the background colour.
     Letterboxing happens after compositing, in main().
     """
-    img = Image.open(src_path).convert("RGB")
-    img_array = np.array(img)
+    img_rgba = Image.open(src_path).convert("RGBA")
+    rgba_array = np.array(img_rgba)
+    img_array = rgba_array[..., :3]
 
-    fg_mask = flood_fill_background(img_array, tolerance)
+    alpha = rgba_array[..., 3].astype(np.float32) / 255.0
+    use_alpha_mask = 0.01 < np.mean(alpha > 0.02) < 0.995 and np.std(alpha) > 0.02
+
+    if use_alpha_mask:
+        fg_mask = alpha > 0.08
+    else:
+        fg_mask = flood_fill_background(img_array, tolerance)
+
+    min_pixels = max(8, int(img_array.shape[0] * img_array.shape[1] * 0.0005))
+    fg_mask = remove_small_components(fg_mask, min_pixels=min_pixels)
     fg_mask_smooth = gaussian_blur_mask(fg_mask, sigma=1.5)
 
     fg_pixels = img_array[fg_mask]
@@ -245,7 +332,7 @@ def main():
             (k for k in TOLERANCES if k in src_path.lower()),
             None,
         )
-        tolerance = TOLERANCES[key] if key else 25
+        tolerance = TOLERANCES[key] if key else None
 
         label = f"{src_path.split('/')[-1]} → .../{'/'.join(dst_path.split('/')[-3:])}"
         print(f"  Processing {label} {target_size}")
@@ -278,7 +365,7 @@ def main():
 
         os.makedirs(os.path.dirname(dst_path), exist_ok=True)
         final_img.save(dst_path)
-        print(f"  ✓ saved")
+        print("  ✓ saved")
 
     print("Done.")
 
