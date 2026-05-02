@@ -11,6 +11,17 @@ semantic-version-format: Strict
 update-build-number: true
 commit-message-incrementing: MergeMessageOnly
 
+# Prefer the most recent matching tag as the version source, then fall back to
+# version hints from branch names, merge messages, explicit next-version config,
+# release tracking, and finally GitVersion's generic fallback behaviour.
+strategies:
+  - TaggedCommit
+  - VersionInBranchName
+  - MergeMessage
+  - ConfiguredNextVersion
+  - TrackReleaseBranches
+  - Fallback
+
 # Conventional commit driven version increments.
 # Squash merge commit messages in GitHub typically reuse the PR title, which keeps
 # version increments aligned with the title linting policy.
