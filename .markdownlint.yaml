@@ -1,0 +1,41 @@
+---
+# Markdownlint configuration — DownAtTheBottomOfTheMoleHole org baseline
+# https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+#
+# Copy this file to the root of any repo that uses MegaLinter or markdownlint-cli2.
+
+default: true
+
+# MD013: Line length — allow longer lines; disable for tables and code blocks
+MD013:
+  line_length: 120
+  heading_line_length: 120
+  code_block_line_length: 120
+  code_blocks: false
+  tables: false
+
+# MD024: Multiple headings with the same content — only flag siblings, not across sections
+MD024:
+  siblings_only: true
+
+# MD033: Inline HTML — allow common safe elements
+MD033:
+  allowed_elements:
+    - a
+    - br
+    - details
+    - img
+    - summary
+
+# MD041: First line should be a top-level heading
+# Disable globally here; suppress per-file with <!-- markdownlint-disable-file MD041 -->
+# where a banner image or comment must appear first (e.g. profile/README.md)
+MD041: false
+
+# MD046: Code block style — prefer fenced blocks
+MD046:
+  style: fenced
+
+# MD048: Code fence style — use backticks consistently
+MD048:
+  style: backtick
