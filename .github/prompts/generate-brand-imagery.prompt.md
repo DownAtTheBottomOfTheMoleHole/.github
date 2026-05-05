@@ -51,6 +51,11 @@ Use a combination of all available image generation/editing tools and MCP image 
 - For logos, focus on strong, simple shapes that scale well. Avoid excessive detail or gradients that may not reproduce clearly at small sizes.
 - For avatars, prioritize clear facial features or symbolic representations that read well at small sizes. Avoid cluttered designs.
 - For banners, leverage the wider canvas to create more detailed and atmospheric compositions that convey the brand identity and tone. Consider how the banner will look on different screen sizes and ensure key elements are visible and not cropped out.
+- github org imagery should feel cohesive across avatar, logo, and banner while allowing for some variation in style and composition to suit each format. The avatar can be more iconic and simplified, the logo can be a stylized representation of the name or theme, and the banner can be more illustrative and detailed.
+- github logos such as the "octocat" often have a unique and recognizable character or symbol that can be adapted to fit the brand identity. Consider how to create a distinctive mascot or emblem that can be used across all image types while maintaining a consistent visual language
+- octocat and github icons are permitted
+- when generating user imagery, consider how to incorporate personal interests or traits into the design while still maintaining a professional and cohesive look that fits the GitHub platform. This could include subtle nods to hobbies or preferred styles without overwhelming the core identity of the user.
+
 
 ## Prompt Construction
 
