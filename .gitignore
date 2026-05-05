@@ -18,6 +18,11 @@ yarn-error.log*
 .ruff_cache/
 .venv/
 venv/
+**/__pycache__/
+
+# Local assets (personal/raw)
+assets/openai-tmp/
+assets/10A6EFE0-04DD-442C-97D4-E7A2C3468C00_1_105_c.jpeg
 
 # Coverage / reports
 .coverage
