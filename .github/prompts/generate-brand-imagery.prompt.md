@@ -1,7 +1,7 @@
 ---
 description: "Generate logo, avatar, and banner assets for a GitHub org/user with iterative MCP image runs"
 name: "Generate Brand Imagery"
-argument-hint: "target=<org-or-user> kind=<org|user|both> runs=<n> inspirations=<optional image paths/urls> fonts=<optional list> hobbies=<optional list> style=<optional colors + art direction>"
+argument-hint: "kind=<org|user|both> username=<optional> orgname=<optional> runs=<n> inspirations=<optional image paths/urls> fonts=<optional list> hobbies=<optional list> style=<optional colors + art direction>"
 agent: "agent"
 ---
 
@@ -11,16 +11,17 @@ Use this exact workflow.
 
 ## Inputs
 
-Read and normalize the arguments below. If an argument is missing, ask one concise question, then continue.
+Read and normalize the arguments below. ask for each answer, blank is treated as null, then continue.
 
-- `target`: organization or username base name used in output files.
 - `kind`: one of `org`, `user`, `both`.
-- `runs`: max iteration count.
+- `username`: required if `kind` is `user` or `both`.
+- `orgname`: required if `kind` is `org` or `both`.
+- `runs`: optional max iteration count. unlimited if not specified
 - `inspirations`: optional list of inspiration image paths or URLs.
 - `fonts`: optional list of preferred font family names.
 - `hobbies`: optional list of hobbies/interests to influence symbols and motifs.
 - `style`: optional style direction including colors, tone, materials, and composition cues.
-- `outputDir`: optional output folder, default `assets`.
+- `outputDir`: optional output folder, default `assets/generated`.
 - `stopOnCreditsExhausted`: default `true`.
 - `respectRateLimits`: default `true`.
 
