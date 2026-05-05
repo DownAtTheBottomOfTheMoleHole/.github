@@ -20,7 +20,7 @@ Read and normalize the arguments below. ask for each answer, blank is treated as
 - `inspirations`: optional list of inspiration image paths or URLs.
 - `fonts`: optional list of preferred font family names.
 - `hobbies`: optional list of hobbies/interests to influence symbols and motifs.
-- `style`: optional style direction including colors, tone, materials, and composition cues.
+- `style`: optional style direction including colors, tone, materials, and composition cues. comma separate for separate styles or combine into a single prompt.
 - `outputDir`: optional output folder, default `assets/generated`.
 - `stopOnCreditsExhausted`: default `true`.
 - `respectRateLimits`: default `true`.
