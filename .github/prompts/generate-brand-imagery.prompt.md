@@ -74,6 +74,7 @@ Use a combination of all available image generation/editing tools and MCP image 
 - When a provider reports credit exhaustion, inform the user immediately and ask whether to continue with remaining providers/tools.
 - Keep all generated content policy-compliant and avoid direct style mimicry of living artists.
 - text is permitted but only from tools that support it natively, and only if explicitly requested in the `style` input. Do not embed text in logos or avatars unless specified.
+- If text rendering is explicitly requested, prefer OpenAI image tooling first because text fidelity is typically stronger, then fall back to other providers only if needed.
 - When using inspiration images, do not copy distinctive elements that would violate copyright or create confusion with existing brands. Use them as loose references for style and composition instead.
 - For logos, focus on strong, simple shapes that scale well. Avoid excessive detail or gradients that may not reproduce clearly at small sizes.
 - For avatars, prioritize clear facial features or symbolic representations that read well at small sizes. Avoid cluttered designs.
@@ -113,9 +114,10 @@ For `runIndex` from 1 to `runs`:
 ## Tooling Strategy
 
 - Prefer parallel generation when safe.
-- Use a combination of available imaging tools/providers in each run when possible (for example OpenAI, Fal, Together, EverArt, Pollinations).
+- Prefer OpenAI image tooling as the primary/default provider for initial generation attempts.
+- Use a combination of available imaging tools/providers in each run when possible (for example OpenAI, Fal, Together, EverArt, Pollinations), with OpenAI first in the chain.
 - Diversify across available models/tools to increase variety and resilience.
-- Maintain a provider fallback chain so single-provider credit exhaustion does not block the run.
+- Maintain a provider fallback chain so single-provider credit exhaustion does not block the run. Default chain order: OpenAI -> Fal -> Together -> EverArt -> Pollinations.
 - On provider credit exhaustion, notify the user with the failed provider name and continue decision prompt; then route remaining generations to the next providers in the chain.
 - Reuse successful prompt fragments between runs.
 - Log which tool/model produced each file.
