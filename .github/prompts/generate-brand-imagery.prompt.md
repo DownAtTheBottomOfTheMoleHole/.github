@@ -27,6 +27,7 @@ Ask for each input individually, one concise question at a time, in the exact or
 - `outputDir`: optional output folder, default `assets/generated`.
 - `stopOnCreditsExhausted`: default `true`.
 - `respectRateLimits`: default `true`.
+- `promptOnProviderCreditExhausted`: default `true`.
 
 ### Style Auto-Suggest
 
@@ -68,7 +69,9 @@ Use a combination of all available image generation/editing tools and MCP image 
 - If a file already exists, skip that exact filename and choose the next free instance.
 - Prefer PNG outputs. If a tool returns JPEG/WebP, convert to PNG while preserving quality.
 - Respect platform and provider rate limits. Back off and retry with jitter when needed.
-- Stop early if MCP/image credits are exhausted and report partial completion.
+- Stop early only if all available providers are credit-exhausted, or if the user chooses to stop after a provider credit warning; then report partial completion.
+- Treat credit exhaustion as provider-scoped, not global. If one provider is out of credits, continue with other available providers/tools unless the user chooses to stop.
+- When a provider reports credit exhaustion, inform the user immediately and ask whether to continue with remaining providers/tools.
 - Keep all generated content policy-compliant and avoid direct style mimicry of living artists.
 - text is permitted but only from tools that support it natively, and only if explicitly requested in the `style` input. Do not embed text in logos or avatars unless specified.
 - When using inspiration images, do not copy distinctive elements that would violate copyright or create confusion with existing brands. Use them as loose references for style and composition instead.
@@ -79,7 +82,6 @@ Use a combination of all available image generation/editing tools and MCP image 
 - github logos such as the "octocat" often have a unique and recognizable character or symbol that can be adapted to fit the brand identity. Consider how to create a distinctive mascot or emblem that can be used across all image types while maintaining a consistent visual language
 - octocat and github icons are permitted
 - when generating user imagery, consider how to incorporate personal interests or traits into the design while still maintaining a professional and cohesive look that fits the GitHub platform. This could include subtle nods to hobbies or preferred styles without overwhelming the core identity of the user.
-
 
 ## Prompt Construction
 
@@ -106,11 +108,15 @@ For `runIndex` from 1 to `runs`:
    - banner: wide, recommended 1536x640 or better
 4. If quality is weak, refine prompt and regenerate only weak outputs in the next run.
 5. Check rate-limit and credit status before each tool call group.
+6. If a provider is credit-exhausted, mark it unavailable for subsequent runs, prompt the user to continue, and proceed with remaining providers if approved.
 
 ## Tooling Strategy
 
 - Prefer parallel generation when safe.
-- Diversify across available models/tools to increase variety.
+- Use a combination of available imaging tools/providers in each run when possible (for example OpenAI, Fal, Together, EverArt, Pollinations).
+- Diversify across available models/tools to increase variety and resilience.
+- Maintain a provider fallback chain so single-provider credit exhaustion does not block the run.
+- On provider credit exhaustion, notify the user with the failed provider name and continue decision prompt; then route remaining generations to the next providers in the chain.
 - Reuse successful prompt fragments between runs.
 - Log which tool/model produced each file.
 
@@ -120,6 +126,7 @@ Return a concise report with:
 
 - normalized input values
 - tools/models used
+- provider/tool credit status and any user continue/stop decisions after credit warnings
 - files created (full relative paths)
 - skipped filenames due to existing files
 - run-by-run notes and quality observations
