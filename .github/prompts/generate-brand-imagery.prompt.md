@@ -1,7 +1,7 @@
 ---
 description: "Generate logo, avatar, and banner assets for a GitHub org/user with iterative MCP image runs"
 name: "Generate Brand Imagery"
-argument-hint: "kind=<org|user|both> username=<optional> orgname=<optional> runs=<n> inspirations=<optional image paths/urls> fonts=<optional list> hobbies=<optional list> style=<optional colors + art direction>"
+argument-hint: "kind=<org|user|both> username=<optional> orgname=<optional> brandName=<optional> runs=<n> inspirations=<optional image paths/urls> fonts=<optional list> hobbies=<optional list> style=<optional colors + art direction> outputDir=<optional>"
 agent: "agent"
 ---
 
@@ -11,11 +11,14 @@ Use this exact workflow.
 
 ## Inputs
 
-Read and normalize the arguments below. ask for each answer, blank is treated as null, then continue.
+Read and normalize the arguments below.
+
+Ask for each input individually, one concise question at a time, in the exact order listed here. Treat blank as null unless required. After all questions are complete, continue without asking for reconfirmation.
 
 - `kind`: one of `org`, `user`, `both`.
 - `username`: required if `kind` is `user` or `both`.
 - `orgname`: required if `kind` is `org` or `both`.
+- `brandName`: optional display brand name. this can be different from github `username`/`orgname` and should be used in prompt identity text.
 - `runs`: optional max iteration count. unlimited if not specified
 - `inspirations`: optional list of inspiration image paths or URLs.
 - `fonts`: optional list of preferred font family names.
@@ -24,6 +27,27 @@ Read and normalize the arguments below. ask for each answer, blank is treated as
 - `outputDir`: optional output folder, default `assets/generated`.
 - `stopOnCreditsExhausted`: default `true`.
 - `respectRateLimits`: default `true`.
+
+### Style Auto-Suggest
+
+If `style` is null, auto-suggest 3 compact style options before generation and ask the user to pick one or provide custom text.
+
+Build suggestions from available context (`brandName`, `kind`, `hobbies`, `fonts`) and include both palette and art direction, for example:
+
+- "bronze black gold, gritty cinematic, high contrast, metallic textures"
+- "deep navy cyan silver, clean tech-noir, crisp edges, soft glow"
+- "earth brown moss amber, handcrafted fantasy, inked linework, warm lighting"
+
+If the user leaves style blank after suggestions, pick the most relevant suggestion automatically and continue.
+
+### Naming Resolution
+
+Resolve a `targetName` for output filenames:
+
+- use `brandName` slug if provided
+- else use `orgname` when `kind=org`
+- else use `username` when `kind=user`
+- else when `kind=both`, generate two target sets: one for org and one for user
 
 ## Goal
 
@@ -61,7 +85,7 @@ Use a combination of all available image generation/editing tools and MCP image 
 
 For each target and image type, build a structured prompt from:
 
-- core identity: org/user name and role
+- core identity: `brandName` (if present), plus org/user name and role
 - visual traits: optional hobbies/interests mapped to iconography
 - typography: optional font inspirations (do not require exact licensed font use)
 - style system: palette, contrast, texture, mood, lighting
@@ -104,4 +128,4 @@ Return a concise report with:
 
 ## Example Invocation
 
-`/generate-brand-imagery target=downatthebottomofthemolehole kind=both runs=4 inspirations="assets/reference/org.png,assets/reference/user.png" fonts="Cinzel,Metal Mania" hobbies="mining,metal music,retro games" style="bronze black gold, gritty cinematic, high contrast" outputDir=assets`
+`/generate-brand-imagery kind=both username=rolfmoleman orgname=downatthebottomofthemolehole brandName="Mole Hole Foundry" runs=4 inspirations="assets/reference/org.png,assets/reference/user.png" fonts="Cinzel,Metal Mania" hobbies="mining,metal music,retro games" style="bronze black gold, gritty cinematic, high contrast" outputDir=assets`
