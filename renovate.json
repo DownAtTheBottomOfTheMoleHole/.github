@@ -6,16 +6,10 @@
     ":disableDependencyDashboard",
     "group:allNonMajor"
   ],
-  "addLabels": [
-    "renovate",
-    "bot",
-    "dependencies"
-  ],
+  "addLabels": ["renovate", "bot", "dependencies"],
   "gitAuthor": "DBMH Renovate <renovate@dbmh.com>",
   "timezone": "GB",
-  "schedule": [
-    "after 9am and before 5pm every weekday"
-  ],
+  "schedule": ["after 9am and before 5pm every weekday"],
   "prConcurrentLimit": 0,
   "prHourlyLimit": 0,
   "prCreation": "immediate",
@@ -38,65 +32,38 @@
   "packageRules": [
     {
       "description": "Require manual merge for all major updates",
-      "matchUpdateTypes": [
-        "major"
-      ],
+      "matchUpdateTypes": ["major"],
       "automerge": false,
-      "addLabels": [
-        "Semver Major"
-      ]
+      "addLabels": ["Semver Major"]
     },
     {
       "description": "Auto-label minor updates",
-      "matchUpdateTypes": [
-        "minor"
-      ],
-      "addLabels": [
-        "Semver Minor"
-      ]
+      "matchUpdateTypes": ["minor"],
+      "addLabels": ["Semver Minor"]
     },
     {
       "description": "Auto-label patch updates",
-      "matchUpdateTypes": [
-        "patch"
-      ],
-      "addLabels": [
-        "Semver Patch"
-      ]
+      "matchUpdateTypes": ["patch"],
+      "addLabels": ["Semver Patch"]
     },
     {
       "description": "Pin digests for GitHub Actions for supply-chain security",
-      "matchDatasources": [
-        "github-tags",
-        "github-releases"
-      ],
-      "matchPackageNames": [
-        "/^actions\\//"
-      ],
+      "matchDatasources": ["github-tags", "github-releases"],
+      "matchPackageNames": ["/^actions\\//"],
       "pinDigests": true,
-      "addLabels": [
-        "GitHub Actions"
-      ]
+      "addLabels": ["GitHub Actions"]
     },
     {
       "description": "Group GitHub Actions updates together",
-      "matchManagers": [
-        "github-actions"
-      ],
+      "matchManagers": ["github-actions"],
       "groupName": "GitHub Actions",
-      "addLabels": [
-        "GitHub Actions"
-      ]
+      "addLabels": ["GitHub Actions"]
     },
     {
       "description": "Group pre-commit hook updates together",
-      "matchManagers": [
-        "pre-commit"
-      ],
+      "matchManagers": ["pre-commit"],
       "groupName": "pre-commit hooks",
-      "addLabels": [
-        "linting"
-      ]
+      "addLabels": ["linting"]
     },
     {
       "description": "Group MegaLinter-related updates",
@@ -106,59 +73,35 @@
         "oxsecurity/megalinter-security"
       ],
       "groupName": "MegaLinter",
-      "addLabels": [
-        "MegaLinter"
-      ]
+      "addLabels": ["MegaLinter"]
     },
     {
       "description": "Group linting and formatting tool updates",
-      "matchPackageNames": [
-        "eslint",
-        "@eslint/js",
-        "prettier"
-      ],
+      "matchPackageNames": ["eslint", "@eslint/js", "prettier"],
       "groupName": "linters and formatters",
-      "addLabels": [
-        "linting"
-      ]
+      "addLabels": ["linting"]
     },
     {
       "description": "Do not auto-merge major Terraform provider updates",
-      "matchPackagePatterns": [
-        "^terraform$"
-      ],
-      "matchUpdateTypes": [
-        "minor",
-        "major"
-      ],
-      "automerge": false
+      "matchUpdateTypes": ["minor", "major"],
+      "automerge": false,
+      "matchPackageNames": ["/^terraform$/"]
     },
     {
       "description": "Label security scanner updates",
-      "matchPackageNames": [
-        "Yelp/detect-secrets"
-      ],
-      "addLabels": [
-        "security"
-      ]
+      "matchPackageNames": ["Yelp/detect-secrets"],
+      "addLabels": ["security"]
     },
     {
       "description": "Label chores like dependency pinning or digest updates",
-      "matchUpdateTypes": [
-        "pin",
-        "digest"
-      ],
-      "addLabels": [
-        "chore"
-      ]
+      "matchUpdateTypes": ["pin", "digest"],
+      "addLabels": ["chore"]
     },
     {
       "description": "Dont update Azure Pipelines tasks",
       "enabled": false,
       "extractVersion": "^(?<version>\\d+)",
-      "matchDatasources": [
-        "azure-pipelines-tasks"
-      ]
+      "matchDatasources": ["azure-pipelines-tasks"]
     }
   ]
 }
