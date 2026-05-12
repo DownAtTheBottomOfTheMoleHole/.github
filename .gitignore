@@ -32,3 +32,6 @@ megalinter-reports/
 # Build output
 dist/
 build/
+
+# venv and virtualenv
+.venv*
