@@ -1,140 +1,18 @@
 ---
-description: "Generate logo, avatar, and banner assets for a GitHub org/user with iterative MCP image runs"
+description: "Create or refine cohesive GitHub avatars, logos, and banners with available image tools"
 name: "Generate Brand Imagery"
-argument-hint: "kind=<org|user|both> username=<optional> orgname=<optional> brandName=<optional> runs=<n> inspirations=<optional image paths/urls> fonts=<optional list> hobbies=<optional list> style=<optional colors + art direction> outputDir=<optional>"
+argument-hint: "kind=<org|user|both> username=<optional> orgname=<optional> brandName=<optional> types=<avatar,banner,logo> runs=<positive max passes; default 1> inspirations=<paths/urls> fonts=<optional> hobbies=<optional> style=<optional> outputDir=<optional>"
 agent: "agent"
 ---
 
-Generate production-ready brand images for a named GitHub organization and/or named GitHub user.
+Follow the [Generate Brand Imagery skill](../skills/generate-brand-imagery/SKILL.md) for this request. The skill is the
+source of truth for inputs, available-tool selection, iteration limits, quality checks, filenames, and failure handling.
 
-Use this exact workflow.
+Use the user's arguments and conversation context. Infer optional details, ask only for essential missing information,
+and create only the requested targets and image types. The default is one generation pass.
 
-## Inputs
+Example:
 
-Read and normalize the arguments below.
-
-Ask for each input individually, one concise question at a time, in the exact order listed here. Treat blank as null unless required. After all questions are complete, continue without asking for reconfirmation.
-
-- `kind`: one of `org`, `user`, `both`.
-- `username`: required if `kind` is `user` or `both`.
-- `orgname`: required if `kind` is `org` or `both`.
-- `brandName`: optional display brand name. this can be different from github `username`/`orgname` and should be used in prompt identity text.
-- `runs`: optional max iteration count. unlimited if not specified
-- `inspirations`: optional list of inspiration image paths or URLs.
-- `fonts`: optional list of preferred font family names.
-- `hobbies`: optional list of hobbies/interests to influence symbols and motifs.
-- `style`: optional style direction including colors, tone, materials, and composition cues. comma separate for separate styles or combine into a single prompt.
-- `outputDir`: optional output folder, default `assets/generated`.
-- `stopOnCreditsExhausted`: default `true`.
-- `respectRateLimits`: default `true`.
-- `promptOnProviderCreditExhausted`: default `true`.
-
-### Style Auto-Suggest
-
-If `style` is null, auto-suggest 3 compact style options before generation and ask the user to pick one or provide custom text.
-
-Build suggestions from available context (`brandName`, `kind`, `hobbies`, `fonts`) and include both palette and art direction, for example:
-
-- "bronze black gold, gritty cinematic, high contrast, metallic textures"
-- "deep navy cyan silver, clean tech-noir, crisp edges, soft glow"
-- "earth brown moss amber, handcrafted fantasy, inked linework, warm lighting"
-
-If the user leaves style blank after suggestions, pick the most relevant suggestion automatically and continue.
-
-### Naming Resolution
-
-Resolve a `targetName` for output filenames:
-
-- use `brandName` slug if provided
-- else use `orgname` when `kind=org`
-- else use `username` when `kind=user`
-- else when `kind=both`, generate two target sets: one for org and one for user
-
-## Goal
-
-Per run, generate all requested image types:
-
-- avatar
-- banner
-- logo
-
-Use a combination of all available image generation/editing tools and MCP image servers that are accessible in the current environment.
-
-## Hard Rules
-
-- Never overwrite any existing image.
-- Use the file naming convention: `<target>_<imagetype>_<instance>.png`.
-- Valid `imagetype` values: `avatar`, `banner`, `logo`.
-- `instance` starts at `1` and increments (`2`, `3`, ...).
-- If a file already exists, skip that exact filename and choose the next free instance.
-- Prefer PNG outputs. If a tool returns JPEG/WebP, convert to PNG while preserving quality.
-- Respect platform and provider rate limits. Back off and retry with jitter when needed.
-- Stop early only if all available providers are credit-exhausted, or if the user chooses to stop after a provider credit warning; then report partial completion.
-- Treat credit exhaustion as provider-scoped, not global. If one provider is out of credits, continue with other available providers/tools unless the user chooses to stop.
-- When a provider reports credit exhaustion, inform the user immediately and ask whether to continue with remaining providers/tools.
-- Keep all generated content policy-compliant and avoid direct style mimicry of living artists.
-- text is permitted but only from tools that support it natively, and only if explicitly requested in the `style` input. Do not embed text in logos or avatars unless specified.
-- If text rendering is explicitly requested, prefer OpenAI image tooling first because text fidelity is typically stronger, then fall back to other providers only if needed.
-- When using inspiration images, do not copy distinctive elements that would violate copyright or create confusion with existing brands. Use them as loose references for style and composition instead.
-- For logos, focus on strong, simple shapes that scale well. Avoid excessive detail or gradients that may not reproduce clearly at small sizes.
-- For avatars, prioritize clear facial features or symbolic representations that read well at small sizes. Avoid cluttered designs.
-- For banners, leverage the wider canvas to create more detailed and atmospheric compositions that convey the brand identity and tone. Consider how the banner will look on different screen sizes and ensure key elements are visible and not cropped out.
-- github org imagery should feel cohesive across avatar, logo, and banner while allowing for some variation in style and composition to suit each format. The avatar can be more iconic and simplified, the logo can be a stylized representation of the name or theme, and the banner can be more illustrative and detailed.
-- github logos such as the "octocat" often have a unique and recognizable character or symbol that can be adapted to fit the brand identity. Consider how to create a distinctive mascot or emblem that can be used across all image types while maintaining a consistent visual language
-- octocat and github icons are permitted
-- when generating user imagery, consider how to incorporate personal interests or traits into the design while still maintaining a professional and cohesive look that fits the GitHub platform. This could include subtle nods to hobbies or preferred styles without overwhelming the core identity of the user.
-
-## Prompt Construction
-
-For each target and image type, build a structured prompt from:
-
-- core identity: `brandName` (if present), plus org/user name and role
-- visual traits: optional hobbies/interests mapped to iconography
-- typography: optional font inspirations (do not require exact licensed font use)
-- style system: palette, contrast, texture, mood, lighting
-- composition: framing suitable for image type (avatar square, banner wide, logo scalable)
-- constraints: no embedded text unless explicitly requested
-
-When inspiration images are supplied, use image-to-image or reference-capable tools where supported.
-
-## Iteration Plan
-
-For `runIndex` from 1 to `runs`:
-
-1. Generate candidate avatar/logo/banner set.
-2. Save files to the first available non-conflicting names.
-3. Validate dimensions and basic quality:
-   - avatar: square, recommended >= 1024x1024
-   - logo: square or portrait-safe, recommended >= 1024 px on shortest side
-   - banner: wide, recommended 1536x640 or better
-4. If quality is weak, refine prompt and regenerate only weak outputs in the next run.
-5. Check rate-limit and credit status before each tool call group.
-6. If a provider is credit-exhausted, mark it unavailable for subsequent runs, prompt the user to continue, and proceed with remaining providers if approved.
-
-## Tooling Strategy
-
-- Prefer parallel generation when safe.
-- Prefer OpenAI image tooling as the primary/default provider for initial generation attempts.
-- Use a combination of available imaging tools/providers in each run when possible (for example OpenAI, Fal, Together, EverArt, Pollinations), with OpenAI first in the chain.
-- Diversify across available models/tools to increase variety and resilience.
-- Maintain a provider fallback chain so single-provider credit exhaustion does not block the run. Default chain order: OpenAI -> Fal -> Together -> EverArt -> Pollinations.
-- On provider credit exhaustion, notify the user with the failed provider name and continue decision prompt; then route remaining generations to the next providers in the chain.
-- Reuse successful prompt fragments between runs.
-- Log which tool/model produced each file.
-
-## Required Output
-
-Return a concise report with:
-
-- normalized input values
-- tools/models used
-- provider/tool credit status and any user continue/stop decisions after credit warnings
-- files created (full relative paths)
-- skipped filenames due to existing files
-- run-by-run notes and quality observations
-- whether stopped by run limit, success, or credit exhaustion
-- next suggested run arguments for improved results
-
-## Example Invocation
-
-`/generate-brand-imagery kind=both username=rolfmoleman orgname=downatthebottomofthemolehole brandName="Mole Hole Foundry" runs=4 inspirations="assets/reference/org.png,assets/reference/user.png" fonts="Cinzel,Metal Mania" hobbies="mining,metal music,retro games" style="bronze black gold, gritty cinematic, high contrast" outputDir=assets`
+```text
+/generate-brand-imagery kind=both username=rolfmoleman orgname=downatthebottomofthemolehole brandName="Mole Hole Foundry" types=avatar,banner runs=1 style="bronze, black, and gold; cinematic underground forge" outputDir=assets/generated
+```
