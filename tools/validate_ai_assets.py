@@ -30,6 +30,11 @@ INLINE_LINK_RE = re.compile(
     r"""(?<!!)\[[^\]\n]+\]\((<[^>\n]+>|[^\s)]+)"""
     r"""(\s+(?:"[^"\n]*"|'[^'\n]*'|\([^()\n]*\)))?\)"""
 )
+REFERENCE_LINK_RE = re.compile(
+    r"""^ {0,3}\[[^\]\n]+\]:\s*(<[^>\n]+>|[^\s]+)"""
+    r"""(\s+(?:"[^"\n]*"|'[^'\n]*'|\([^()\n]*\)))?(?=\s*$)""",
+    re.MULTILINE,
+)
 
 
 def strip_fenced_code(content: str) -> str:
@@ -95,6 +100,16 @@ def inspect_asset(path: Path, root: Path) -> list[str]:
     # Ignore code examples; validate explicit relative Markdown links, not external URLs.
     body = strip_fenced_code(content[match.end() :])
     for link in INLINE_LINK_RE.finditer(body):
+        target = link.group(1)
+        parts = urlsplit(target.strip("<>"))
+        if parts.scheme or parts.netloc or not parts.path or parts.path.startswith("/"):
+            continue
+        local = (path.parent / unquote(parts.path)).resolve()
+        if not local.is_relative_to(root.resolve()) or not local.exists():
+            errors.append(
+                f"{path.relative_to(root)}: missing or outside-repository link {target}"
+            )
+    for link in REFERENCE_LINK_RE.finditer(body):
         target = link.group(1)
         parts = urlsplit(target.strip("<>"))
         if parts.scheme or parts.netloc or not parts.path or parts.path.startswith("/"):

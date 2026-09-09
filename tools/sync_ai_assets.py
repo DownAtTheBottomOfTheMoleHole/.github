@@ -10,6 +10,10 @@ INLINE_LINK_RE = re.compile(
     r"""(\[[^\]\n]+\]\()(<[^>\n]+>|[^\s)]+)"""
     r"""(\s+(?:"[^"\n]*"|'[^'\n]*'|\([^()\n]*\)))?\)"""
 )
+REFERENCE_LINK_RE = re.compile(
+    r"""(^ {0,3}\[[^\]\n]+\]:\s*)(<[^>\n]+>|[^\s]+)"""
+    r"""(\s+(?:"[^"\n]*"|'[^'\n]*'|\([^()\n]*\)))?(?=\s*$)"""
+)
 
 
 def render_agent(source: Path, target: Path) -> bytes:
@@ -26,7 +30,8 @@ def render_agent(source: Path, target: Path) -> bytes:
         destination = urlunsplit(parts._replace(path=relative))
         if angled:
             destination = "<" + destination + ">"
-        return match.group(1) + destination + title + ")"
+        suffix = "" if match.re is REFERENCE_LINK_RE else ")"
+        return match.group(1) + destination + title + suffix
 
     rendered = []
     fence = None
@@ -45,7 +50,9 @@ def render_agent(source: Path, target: Path) -> bytes:
             fence = marker.group(1)
             rendered.append(line)
         else:
-            rendered.append(INLINE_LINK_RE.sub(relocate, line))
+            rendered.append(
+                REFERENCE_LINK_RE.sub(relocate, INLINE_LINK_RE.sub(relocate, line))
+            )
     return "".join(rendered).encode("utf-8")
 
 

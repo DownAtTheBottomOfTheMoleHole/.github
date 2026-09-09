@@ -50,6 +50,10 @@ class AssetTests(unittest.TestCase):
                 '[Titled](../skills/example/SKILL.md "details")\n'
                 "[Angled](<../skills/example/SKILL.md>)\n"
                 '[Angled titled](<../skills/example/SKILL.md> "details")\n'
+                "[Reference][skill-ref]\n"
+                "[skill-ref]: ../skills/example/SKILL.md\n"
+                "[Titled reference][skill-ref-titled]\n"
+                '[skill-ref-titled]: <../skills/example/SKILL.md> "details"\n'
                 "```md\n[Example](../skills/example/SKILL.md)\n```\n"
             )
         self.assertEqual(sync(self.root), [])
@@ -66,6 +70,13 @@ class AssetTests(unittest.TestCase):
         )
         self.assertIn(
             '[Angled titled](<../.github/skills/example/SKILL.md> "details")',
+            published.read_text(),
+        )
+        self.assertIn(
+            "[skill-ref]: ../.github/skills/example/SKILL.md", published.read_text()
+        )
+        self.assertIn(
+            '[skill-ref-titled]: <../.github/skills/example/SKILL.md> "details"',
             published.read_text(),
         )
         self.assertIn(
@@ -130,6 +141,8 @@ class AssetTests(unittest.TestCase):
             stream.write(
                 '\n[Missing prompt](../../prompts/missing.prompt.md "details")\n'
                 "\n[Missing spaced](<../../prompts/missing prompt.prompt.md>)\n"
+                "\n[Missing ref][missing-ref]\n"
+                "[missing-ref]: ../../prompts/missing.prompt.md\n"
             )
         self.assertTrue(
             any(
