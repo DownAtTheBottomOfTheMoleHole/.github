@@ -5,10 +5,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
+TOOLS_DIR = Path(__file__).resolve().parents[1] / "tools"
+sys.path.insert(0, str(TOOLS_DIR))
 from sync_ai_assets import sync
 from validate_ai_assets import inspect_asset
-
+sys.path.pop(0)
 
 class AssetTests(unittest.TestCase):
     def setUp(self):
