@@ -26,14 +26,14 @@ UniqueKeyLoader.add_constructor(
     yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, unique_mapping
 )
 
-INLINE_LINK_RE = re.compile(
-    r"""(?<!!)\[[^\]\n]+\]\((<[^>\n]+>|[^\s)]+)"""
-    r"""(\s+(?:"[^"\n]*"|'[^'\n]*'|\([^()\n]*\)))?\)"""
-)
+INLINE_LINK_START_RE = re.compile(r"""!?\[[^\]\n]+\]\(""")
 REFERENCE_LINK_RE = re.compile(
     r"""^ {0,3}\[[^\]\n]+\]:\s*(<[^>\n]+>|[^\s]+)"""
     r"""(\s+(?:"[^"\n]*"|'[^'\n]*'|\([^()\n]*\)))?(?=\s*$)""",
     re.MULTILINE,
+)
+INLINE_LINK_END_RE = re.compile(
+    r"""(\s+(?:"[^"\n]*"|'[^'\n]*'|\([^()\n]*\)))?\)"""
 )
 
 
@@ -58,6 +58,45 @@ def strip_fenced_code(content: str) -> str:
             continue
         body.append(line)
     return "".join(body)
+
+
+def iter_inline_targets(content: str):
+    """Yield inline Markdown link and image destinations."""
+
+    for match in INLINE_LINK_START_RE.finditer(content):
+        index = match.end()
+        if index >= len(content):
+            continue
+        if content[index] == "<":
+            end = content.find(">", index + 1)
+            if end == -1 or "\n" in content[index : end + 1]:
+                continue
+            target = content[index : end + 1]
+            index = end + 1
+        else:
+            start = index
+            depth = 0
+            while index < len(content):
+                char = content[index]
+                if char == "\n":
+                    break
+                if char == "\\" and index + 1 < len(content):
+                    index += 2
+                    continue
+                if char == "(":
+                    depth += 1
+                elif char == ")":
+                    if depth == 0:
+                        break
+                    depth -= 1
+                elif char.isspace() and depth == 0:
+                    break
+                index += 1
+            target = content[start:index]
+            if not target:
+                continue
+        if INLINE_LINK_END_RE.match(content, index):
+            yield target
 
 
 def inspect_asset(path: Path, root: Path) -> list[str]:
@@ -99,8 +138,7 @@ def inspect_asset(path: Path, root: Path) -> list[str]:
         errors.append(f"{path.relative_to(root)}: {exc}")
     # Ignore code examples; validate explicit relative Markdown links, not external URLs.
     body = strip_fenced_code(content[match.end() :])
-    for link in INLINE_LINK_RE.finditer(body):
-        target = link.group(1)
+    for target in iter_inline_targets(body):
         parts = urlsplit(target.strip("<>"))
         if parts.scheme or parts.netloc or not parts.path or parts.path.startswith("/"):
             continue

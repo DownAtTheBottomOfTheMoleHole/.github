@@ -127,11 +127,15 @@ class AssetTests(unittest.TestCase):
     def test_valid_relative_link_and_code_example(self):
         (self.skill.parent / "reference.md").write_text("# Reference\n")
         (self.skill.parent / "user guide.md").write_text("# Guide\n")
+        (self.skill.parent / "guide(v2).md").write_text("# Versioned guide\n")
+        (self.skill.parent / "image.png").write_bytes(b"\x89PNG\r\n\x1a\n")
         with self.skill.open("a") as stream:
             stream.write(
                 "\n[Reference](reference.md)\n"
                 '[Titled](reference.md "details")\n'
                 "[Spaced](<user guide.md>)\n"
+                "\n[Parenthesized](guide(v2).md)\n"
+                "\n![Diagram](image.png)\n"
                 '\n   ```md\n[Example](not-a-real-file.md)\n````\n'
             )
         self.assertEqual(inspect_asset(self.skill, self.root), [])
@@ -141,6 +145,7 @@ class AssetTests(unittest.TestCase):
             stream.write(
                 '\n[Missing prompt](../../prompts/missing.prompt.md "details")\n'
                 "\n[Missing spaced](<../../prompts/missing prompt.prompt.md>)\n"
+                "\n![Missing image](missing-image.png)\n"
                 "\n[Missing ref][missing-ref]\n"
                 "[missing-ref]: ../../prompts/missing.prompt.md\n"
             )
