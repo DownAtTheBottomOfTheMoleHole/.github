@@ -62,6 +62,10 @@ def sync(root: Path, check: bool = False) -> list[str]:
             return [
                 f"Refusing symlinked discovery directory: {directory.relative_to(root)}"
             ]
+        if directory.exists() and not directory.is_dir():
+            return [
+                f"Refusing non-directory discovery path: {directory.relative_to(root)}"
+            ]
     for source in sorted((canonical / "agents").glob("*.agent.md")):
         target = root / "agents" / source.name
         if target.is_symlink() or (target.exists() and not target.is_file()):
