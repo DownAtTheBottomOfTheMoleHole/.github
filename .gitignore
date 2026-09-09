@@ -35,3 +35,9 @@ build/
 
 # venv and virtualenv
 .venv*
+
+# Local Python tooling
+__pycache__/
+*.py[cod]
+.venv/
+.ruff_cache/
