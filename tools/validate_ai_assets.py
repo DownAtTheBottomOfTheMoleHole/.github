@@ -26,6 +26,34 @@ UniqueKeyLoader.add_constructor(
     yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, unique_mapping
 )
 
+INLINE_LINK_RE = re.compile(
+    r"""(?<!!)\[[^\]\n]+\]\((<[^>\n]+>|[^\s)]+)"""
+    r"""(\s+(?:"[^"\n]*"|'[^'\n]*'|\([^()\n]*\)))?\)"""
+)
+
+
+def strip_fenced_code(content: str) -> str:
+    """Remove fenced Markdown code blocks from content."""
+
+    body = []
+    fence = None
+    for line in content.splitlines(keepends=True):
+        marker = re.match(r"^ {0,3}(`{3,}|~{3,})(.*)$", line)
+        if fence:
+            if (
+                marker
+                and marker.group(1)[0] == fence[0]
+                and len(marker.group(1)) >= len(fence)
+                and not marker.group(2).strip()
+            ):
+                fence = None
+            continue
+        if marker:
+            fence = marker.group(1)
+            continue
+        body.append(line)
+    return "".join(body)
+
 
 def inspect_asset(path: Path, root: Path) -> list[str]:
     errors = []
@@ -65,13 +93,9 @@ def inspect_asset(path: Path, root: Path) -> list[str]:
     except (ValueError, TypeError, yaml.YAMLError) as exc:
         errors.append(f"{path.relative_to(root)}: {exc}")
     # Ignore code examples; validate explicit relative Markdown links, not external URLs.
-    body = re.sub(
-        r"^(`{3,}|~{3,}).*?^\1\s*$",
-        "",
-        content[match.end() :],
-        flags=re.MULTILINE | re.DOTALL,
-    )
-    for target in re.findall(r"(?<!!)\[[^\]\n]+\]\(([^\s)]+)\)", body):
+    body = strip_fenced_code(content[match.end() :])
+    for link in INLINE_LINK_RE.finditer(body):
+        target = link.group(1)
         parts = urlsplit(target.strip("<>"))
         if parts.scheme or parts.netloc or not parts.path or parts.path.startswith("/"):
             continue

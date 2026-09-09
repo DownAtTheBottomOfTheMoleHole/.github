@@ -6,12 +6,18 @@ import re
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
+INLINE_LINK_RE = re.compile(
+    r"""(\[[^\]\n]+\]\()(<[^>\n]+>|[^\s)]+)"""
+    r"""(\s+(?:"[^"\n]*"|'[^'\n]*'|\([^()\n]*\)))?\)"""
+)
+
 
 def render_agent(source: Path, target: Path) -> bytes:
     """Keep companion links valid when publishing, preserving fenced examples."""
 
     def relocate(match):
         destination = match.group(2)
+        title = match.group(3) or ""
         angled = destination.startswith("<") and destination.endswith(">")
         parts = urlsplit(destination[1:-1] if angled else destination)
         if parts.scheme or parts.netloc or not parts.path or parts.path.startswith("/"):
@@ -20,7 +26,7 @@ def render_agent(source: Path, target: Path) -> bytes:
         destination = urlunsplit(parts._replace(path=relative))
         if angled:
             destination = "<" + destination + ">"
-        return match.group(1) + destination + ")"
+        return match.group(1) + destination + title + ")"
 
     rendered = []
     fence = None
@@ -39,9 +45,7 @@ def render_agent(source: Path, target: Path) -> bytes:
             fence = marker.group(1)
             rendered.append(line)
         else:
-            rendered.append(
-                re.sub(r"(\[[^\]\n]+\]\()(<[^>\n]+>|[^\s)]+)\)", relocate, line)
-            )
+            rendered.append(INLINE_LINK_RE.sub(relocate, line))
     return "".join(rendered).encode("utf-8")
 
 
@@ -50,6 +54,10 @@ def sync(root: Path, check: bool = False) -> list[str]:
     errors = []
     canonical = root / ".github"
     for directory in (root / "agents", root / ".agents", root / ".agents/skills"):
+        if directory.exists() and not directory.is_dir():
+            return [
+                f"Refusing unexpected discovery directory: {directory.relative_to(root)}"
+            ]
         if directory.is_symlink():
             return [
                 f"Refusing symlinked discovery directory: {directory.relative_to(root)}"

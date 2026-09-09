@@ -45,7 +45,10 @@ class AssetTests(unittest.TestCase):
     def test_generated_agent_links_resolve_after_relocation(self):
         with self.agent.open("a") as stream:
             stream.write(
-                "\n[Skill](../skills/example/SKILL.md)\n[Angled](<../skills/example/SKILL.md>)\n"
+                "\n[Skill](../skills/example/SKILL.md)\n"
+                '[Titled](../skills/example/SKILL.md "details")\n'
+                "[Angled](<../skills/example/SKILL.md>)\n"
+                '[Angled titled](<../skills/example/SKILL.md> "details")\n'
                 "```md\n[Example](../skills/example/SKILL.md)\n```\n"
             )
         self.assertEqual(sync(self.root), [])
@@ -54,7 +57,15 @@ class AssetTests(unittest.TestCase):
             "[Skill](../.github/skills/example/SKILL.md)", published.read_text()
         )
         self.assertIn(
+            '[Titled](../.github/skills/example/SKILL.md "details")',
+            published.read_text(),
+        )
+        self.assertIn(
             "[Angled](<../.github/skills/example/SKILL.md>)", published.read_text()
+        )
+        self.assertIn(
+            '[Angled titled](<../.github/skills/example/SKILL.md> "details")',
+            published.read_text(),
         )
         self.assertIn(
             "```md\n[Example](../skills/example/SKILL.md)\n```", published.read_text()
@@ -69,6 +80,12 @@ class AssetTests(unittest.TestCase):
             any("symlinked discovery directory" in e for e in sync(self.root))
         )
         self.assertEqual(list(outside.iterdir()), [])
+
+    def test_non_directory_discovery_parent_is_rejected(self):
+        (self.root / ".agents").write_text("not a directory")
+        self.assertTrue(
+            any("unexpected discovery directory" in e for e in sync(self.root))
+        )
 
     def test_unexpected_skill_is_not_overwritten(self):
         target = self.root / ".agents/skills/example"
@@ -97,15 +114,22 @@ class AssetTests(unittest.TestCase):
 
     def test_valid_relative_link_and_code_example(self):
         (self.skill.parent / "reference.md").write_text("# Reference\n")
+        (self.skill.parent / "user guide.md").write_text("# Guide\n")
         with self.skill.open("a") as stream:
             stream.write(
-                "\n[Reference](reference.md)\n\n```md\n[Example](not-a-real-file.md)\n```\n"
+                "\n[Reference](reference.md)\n"
+                '[Titled](reference.md "details")\n'
+                "[Spaced](<user guide.md>)\n"
+                '\n   ```md\n[Example](not-a-real-file.md)\n````\n'
             )
         self.assertEqual(inspect_asset(self.skill, self.root), [])
 
     def test_broken_link_is_reported(self):
         with self.skill.open("a") as stream:
-            stream.write("\n[Missing prompt](../../prompts/missing.prompt.md)\n")
+            stream.write(
+                '\n[Missing prompt](../../prompts/missing.prompt.md "details")\n'
+                "\n[Missing spaced](<../../prompts/missing prompt.prompt.md>)\n"
+            )
         self.assertTrue(
             any(
                 "missing or outside-repository link" in e
