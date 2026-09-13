@@ -3,15 +3,22 @@
   "description": "Org-wide Renovate preset for DownAtTheBottomOfTheMoleHole. Individual repos can extend this with: \"extends\": [\"local>DownAtTheBottomOfTheMoleHole/.github\"]",
   "extends": [
     "config:best-practices",
-    ":disableDependencyDashboard",
+    ":enableVulnerabilityAlerts",
     "group:allNonMajor"
   ],
   "addLabels": ["renovate", "bot", "dependencies"],
   "gitAuthor": "DBMH Renovate <renovate@dbmh.com>",
   "timezone": "GB",
-  "schedule": ["after 9am and before 5pm every weekday"],
-  "prConcurrentLimit": 0,
-  "prHourlyLimit": 0,
+  "schedule": ["before 7am on monday"],
+  "prConcurrentLimit": 3,
+  "prHourlyLimit": 1,
+  "dependencyDashboard": true,
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "prConcurrentLimit": 1,
+    "labels": ["security", "renovate"],
+    "automerge": false
+  },
   "prCreation": "immediate",
   "pruneBranchAfterAutomerge": true,
   "automerge": true,
