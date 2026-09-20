@@ -10,12 +10,16 @@ accent. Repository banners use the same source artwork and exact Stonehenge disp
 | --- | --- |
 | Source banner | [`assets/banners/downatthebottomofthemolehole_banner_20.png`](assets/banners/downatthebottomofthemolehole_banner_20.png) |
 | Organisation avatar | [`assets/avatars/downatthebottomofthemolehole_avatar_20.png`](assets/avatars/downatthebottomofthemolehole_avatar_20.png) |
+| GitHub upload avatar | [`assets/avatars/downatthebottomofthemolehole_avatar_20_github.png`](assets/avatars/downatthebottomofthemolehole_avatar_20_github.png) |
 | Organisation logo | [`assets/logos/downatthebottomofthemolehole_logo_20.png`](assets/logos/downatthebottomofthemolehole_logo_20.png) |
 | Organisation profile banner | [`assets/banners/repositories/downatthebottomofthemolehole.png`](assets/banners/repositories/downatthebottomofthemolehole.png) |
 | Repository banners | [`assets/banners/repositories/`](assets/banners/repositories/) |
 
 The candidate-20 medallion is the canonical logo. It shares the mole, cave, keyboard, circuitry,
 black and bronze motifs used by the avatar and banner.
+
+Use the GitHub upload avatar when a service enforces a 1 MB image limit. It is a 512 x 512,
+palette-optimised copy of the approved candidate-20 avatar and is kept below that limit.
 
 ## Repository banner standard
 
