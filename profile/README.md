@@ -1,6 +1,6 @@
 <!-- markdownlint-disable-file MD041 -->
 
-[![Banner][Banner-image]](https://github.com/DownAtTheBottomOfTheMoleHole/)
+[![Down At The Bottom Of The Mole Hole][Banner-image]](https://github.com/DownAtTheBottomOfTheMoleHole/)
 
 ## About
 
@@ -52,4 +52,4 @@ without prior written permission.
 [owner]: https://github.com/rolfmoleman
 <!-- IMAGES AND ICONS -->
 
-[Banner-image]: https://raw.githubusercontent.com/DownAtTheBottomOfTheMoleHole/.github/main/assets/snagglemole_banner.png
+[Banner-image]: https://raw.githubusercontent.com/DownAtTheBottomOfTheMoleHole/.github/main/assets/banners/repositories/downatthebottomofthemolehole.png
