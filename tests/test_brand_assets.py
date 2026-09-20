@@ -28,6 +28,9 @@ class BrandAssetTests(unittest.TestCase):
             "assets/avatars/downatthebottomofthemolehole_avatar_20.png",
             (1024, 1024),
         )
+        github_avatar = "assets/avatars/downatthebottomofthemolehole_avatar_20_github.png"
+        self.assert_png(github_avatar, (512, 512))
+        self.assertLess((ROOT / github_avatar).stat().st_size, 1024 * 1024)
         self.assert_png(
             "assets/logos/downatthebottomofthemolehole_logo_20.png",
             (1024, 1024),
