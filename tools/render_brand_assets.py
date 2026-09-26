@@ -95,6 +95,11 @@ BANNERS = {
         "LOCAL MODEL-AWARE TOKEN CONTROL",
         "OLLAMA / VS CODE CHAT / LOCAL AI",
     ),
+    "shared-copilot-orchestrator": Banner(
+        "SHARED COPILOT ORCHESTRATOR",
+        "REVIEW FINDINGS TO CODING AGENT",
+        "GITHUB ACTIONS / COPILOT / AUTOMATION",
+    ),
     "demo-repository": Banner(
         "DEMO REPOSITORY",
         "A SMALL SHOWCASE OF GITHUB WORKFLOWS",
