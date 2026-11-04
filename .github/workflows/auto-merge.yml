@@ -52,14 +52,17 @@ jobs:
 
       - name: 📝 Report skipped PRs
         if: steps.eligibility.outputs.eligible != 'true'
-        run: echo "${{ steps.eligibility.outputs.reason }}"
+        env:
+          SKIP_REASON: ${{ steps.eligibility.outputs.reason }}
+        run: echo "$SKIP_REASON"
 
       - name: 🤖 Enable squash auto-merge
         if: steps.eligibility.outputs.eligible == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          gh pr merge "${{ github.event.pull_request.number }}" \
+          gh pr merge "$PR_NUMBER" \
             --auto \
             --squash \
             --delete-branch=false
