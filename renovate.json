@@ -12,7 +12,9 @@
   "schedule": ["before 7am on monday"],
   "prConcurrentLimit": 3,
   "prHourlyLimit": 1,
-  "dependencyDashboard": true,
+  "dependencyDashboard": {
+    "enabled": true
+  },
   "vulnerabilityAlerts": {
     "enabled": true,
     "prConcurrentLimit": 1,
